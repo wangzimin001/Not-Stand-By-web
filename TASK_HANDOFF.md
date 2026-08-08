@@ -2,7 +2,7 @@
 
 ## 当前状态
 
-本目录已初始化为 Git 仓库，当前只保留本交接文档，尚未写入 APP 业务代码。
+本目录已初始化为 Git 仓库和 uni-app（Vue 3）项目。使用 HBuilderX 运行后，启动页 `pages/index/index.vue` 展示“不插手”。尚未加入其他 APP 业务功能。
 
 远程仓库：`https://github.com/wangzimin001/Not-Stand-By.git`
 
@@ -23,4 +23,4 @@ git push origin master
 
 ## 下一步
 
-从产品需求、技术栈和页面结构开始设计“不叉手”APP；本仓库目前没有预设实现，避免把“此刻”的业务内容误带入本项目。
+从产品需求和页面结构继续设计“不叉手”APP；当前仅有最小 uni-app 首页，避免过早预设后续业务实现。
