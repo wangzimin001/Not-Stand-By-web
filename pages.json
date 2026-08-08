@@ -1,5 +1,19 @@
 {
-  "pages": [{ "path": "pages/index/index", "style": { "navigationBarTitleText": "不叉手" } }],
+  "pages": [
+    {
+      "path": "pages/onboarding/index",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "不叉手"
+      }
+    },
+    {
+      "path": "pages/index/index",
+      "style": {
+        "navigationBarTitleText": "不叉手"
+      }
+    }
+  ],
   "globalStyle": {
     "navigationBarTextStyle": "black",
     "navigationBarTitleText": "不叉手",

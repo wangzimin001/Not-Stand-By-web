@@ -1,38 +1,49 @@
-# 不叉手（Not Stand By）任务交接
+# 不叉手（Not Stand By）前端任务交接
+
+## 项目配对
+
+- 前端本地目录：`C:\编程\Not-Stand-By-web`
+- 前端仓库：<https://github.com/wangzimin001/Not-Stand-By-web>
+- 后端本地目录：`C:\编程\Not-Stand-By-server`
+- 后端仓库：<https://github.com/wangzimin001/Not-Stand-By-server>
+- 前端默认分支：`master`
+
+切换电脑时必须同时检查前端和后端两个仓库。后端自己的状态、数据库表和启动方式记录在 `Not-Stand-By-server/TASK_HANDOFF.md` 与 `README.md`。
 
 ## 当前状态
 
-本目录已初始化为 Git 仓库和 uni-app（Vue 3）项目。当前已完成第一版孕期协作 APP 交互原型，入口为 `pages/index/index.vue`。
+前端是 uni-app Vue 3 项目，已经完成第一版黑板涂鸦风孕期协作首页和首次资料补充流程。`pages/onboarding/index.vue` 是当前首屏；完成资料的用户会进入 `pages/index/index.vue`。
 
-当前原型包含日历孕周看板、宝宝变化与注意事项、系统/夫妻任务、物品分类清单、夫妻绑定和个人设置四个主模块，底部导航可切换页面。任务勾选、任务筛选和夫妻任务指派已有本地交互；数据尚未持久化。
+首次引导按单个问题渐隐、渐显：
 
-HBuilderX 曾把 UTF-8 的 `pages/index/index.vue` 误判为 GBK。项目根目录已加入 `.editorconfig` 固定 `utf-8-bom`，首页源码带 UTF-8 BOM 并保留中文编码注释，帮助 HBuilderX 正确识别；不要删除该标记。`manifest.json` 已明确配置 Vue 3，并保留 HBuilderX 标准模板文件。
+1. 选择宝爸或宝妈；
+2. 填写昵称；
+3. 新建家庭或加入家庭；
+4. 新建家庭填写预产期，加入家庭扫码或输入家庭码；
+5. 新建家庭可填写“宝宝小名”，也可选择“稍后再说”。
 
-远程仓库：`https://github.com/wangzimin001/Not-Stand-By.git`
+新增请求与会话层：`services/http.js`、`services/auth.js`、`services/onboarding.js`、`utils/session.js`。未提交草稿保存在本地，完成状态以后端 `GET /api/v1/users/me` 为准。
+
+默认接口地址是 `http://127.0.0.1:8080`。真机不能用电脑的 `127.0.0.1`，应将存储项 `nsb_api_base_url` 或构建变量 `VUE_APP_API_BASE_URL` 设置为电脑局域网地址，例如 `http://192.168.1.10:8080`，并保证手机和电脑在同一网络。
+
+HBuilderX 曾把 `pages/index/index.vue` 误判为 GBK。根目录 `.editorconfig` 固定 `utf-8-bom`，中文源码保留首行编码标记；不要删除这些标记。产品正式名称只能使用“不叉手”。
 
 ## 交接规则
 
-每次提交代码时，必须在同一次提交中同步更新本文件，记录当前状态、已完成内容、未完成事项和明确的下一步，确保切换电脑后可以直接继续工作。
+每次提交前端代码时，必须在同一次提交中同步更新本文件，记录当前状态、已完成内容、未完成事项和下一步。
 
-## 在另一台电脑继续工作
+## 恢复工作
 
-```bash
-git clone https://github.com/wangzimin001/Not-Stand-By.git
-cd Not-Stand-By
+```powershell
+git clone https://github.com/wangzimin001/Not-Stand-By-web.git
+cd Not-Stand-By-web
+git status --short --branch
 ```
 
-后续开发完成后：
-
-```bash
-git add .
-git commit -m "描述本次改动"
-git push origin master
-```
+随后在 HBuilderX 中打开该目录。后端需要单独克隆和启动。
 
 ## 下一步
 
-1. 在真机上确认第一版黑板涂鸦风格、信息密度和导航结构。
-2. 产品正式名称统一使用“不叉手”（Not Stand By），代码、配置和界面不得使用其他近似名称。
-3. 把单页原型拆分为独立页面和可复用组件。
-4. 设计用户、夫妻绑定、孕期日历、任务和物品清单的数据模型。
-5. 接入本地持久化，再规划账号与后端同步。
+1. 启动 MySQL 与 `Not-Stand-By-server`，在真机验证完整新建/加入家庭流程。
+2. 在“我的”页面显示当前昵称、角色、家庭码和伴侣绑定状态。
+3. 开始实现任务模块，并以家庭成员身份作为任务指派依据。
