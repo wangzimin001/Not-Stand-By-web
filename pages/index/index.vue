@@ -1,4 +1,4 @@
-<!-- 中文编码标记：本项目源文件统一使用 UTF-8。 -->
+﻿<!-- 中文编码标记：本项目源文件统一使用 UTF-8。 -->
 <template>
   <view class="page">
     <view class="chalk-header">

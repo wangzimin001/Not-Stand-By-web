@@ -6,7 +6,7 @@
 
 当前原型包含日历孕周看板、宝宝变化与注意事项、系统/夫妻任务、物品分类清单、夫妻绑定和个人设置四个主模块，底部导航可切换页面。任务勾选、任务筛选和夫妻任务指派已有本地交互；数据尚未持久化。
 
-HBuilderX 曾把 UTF-8 的 `pages/index/index.vue` 误判为 GBK。项目根目录已加入 `.editorconfig` 固定 UTF-8，首页首行保留中文编码注释帮助 HBuilderX 正确识别；不要删除该注释。`manifest.json` 已明确配置 Vue 3，并保留 HBuilderX 标准模板文件。
+HBuilderX 曾把 UTF-8 的 `pages/index/index.vue` 误判为 GBK。项目根目录已加入 `.editorconfig` 固定 `utf-8-bom`，首页源码带 UTF-8 BOM 并保留中文编码注释，帮助 HBuilderX 正确识别；不要删除该标记。`manifest.json` 已明确配置 Vue 3，并保留 HBuilderX 标准模板文件。
 
 远程仓库：`https://github.com/wangzimin001/Not-Stand-By.git`
 
