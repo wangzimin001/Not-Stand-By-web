@@ -1,8 +1,8 @@
 {
-  "pages": [{ "path": "pages/index/index", "style": { "navigationBarTitleText": "不插手" } }],
+  "pages": [{ "path": "pages/index/index", "style": { "navigationBarTitleText": "不叉手" } }],
   "globalStyle": {
     "navigationBarTextStyle": "black",
-    "navigationBarTitleText": "不插手",
+    "navigationBarTitleText": "不叉手",
     "navigationBarBackgroundColor": "#F8F8F8",
     "backgroundColor": "#F8F8F8"
   },
