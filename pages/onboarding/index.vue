@@ -322,7 +322,9 @@ page { background: #f8f7ef; }
 .preview-meta { display: flex; justify-content: space-between; color: #596014; font-size: 12px; margin-top: 20px; }
 .actions { margin-top: 30px; display: flex; gap: 10px; }
 button { margin: 0; }
-.primary-button, .ghost-button { flex: 1; min-width: 0; height: 49px; line-height: 49px; padding: 0 8px; border-radius: 10px; font-size: 16px; white-space: nowrap; }
+/* App 端 button 默认使用 ::after 绘制半像素边框，必须关闭，否则会与自定义圆角叠成错位拐角。 */
+button::after { border: none; }
+.primary-button, .ghost-button { flex: 1; min-width: 0; height: 49px; line-height: 49px; padding: 0 8px; box-sizing: border-box; overflow: hidden; border: 1px solid transparent; border-radius: 10px; font-size: 16px; white-space: nowrap; }
 .primary-button { color: #111212; background: #eaff3f; }
 .primary-button[disabled] { opacity: .55; }
 .ghost-button { color: #555951; border: 1px solid #c9cbc4; background: rgba(255, 255, 255, .72); }
