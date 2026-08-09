@@ -1,5 +1,6 @@
 <!-- 中文编码标记：本项目源文件统一使用 UTF-8。 -->
 <template>
+  <!-- 整个卡片都是点击区域；选中态和紧凑态由父页面控制。 -->
   <view class="choice" :class="{ selected, compact }" @tap="$emit('tap')">
     <view class="choice-copy">
       <text class="choice-label">{{ label }}</text>
@@ -13,11 +14,16 @@
 export default {
   name: 'ChoiceButton',
   props: {
+    // 选项主文案，例如“宝妈”或“新建家庭”。
     label: { type: String, required: true },
+    // 可选的解释文案，帮助用户理解选择结果。
     hint: { type: String, default: '' },
+    // 当前选项是否已被父页面选中。
     selected: { type: Boolean, default: false },
+    // 是否使用较矮的卡片尺寸。
     compact: { type: Boolean, default: false }
   },
+  // tap 只表达用户意图，具体字段更新和页面跳转由父页面负责。
   emits: ['tap']
 }
 </script>

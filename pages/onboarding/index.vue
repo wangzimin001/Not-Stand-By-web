@@ -1,23 +1,28 @@
 <!-- 中文编码标记：本项目源文件统一使用 UTF-8。 -->
 <template>
   <view class="onboarding-page">
+    <!-- 品牌与总步骤进度始终固定在页面顶部。 -->
     <view class="topbar">
       <view class="brand-mark"><text>不叉手</text><text class="brand-sub">NOT STAND BY</text></view>
       <text class="step-count" v-if="!loading">{{ stepLabel }}</text>
     </view>
 
+    <!-- 匿名会话和用户状态尚未准备好时显示轻量加载说明。 -->
     <view v-if="loading" class="state-panel">
       <text class="state-title">正在准备你的空间</text>
       <text class="state-copy">只需要几步，我们就能一起把迎接宝宝的事情理清楚。</text>
     </view>
 
+    <!-- QuestionStage 根据 step 切换问题，并统一处理渐隐、渐显动画。 -->
     <view v-else class="content">
       <QuestionStage :question-key="step" :eyebrow="eyebrow" :title="questionTitle" :subtitle="questionSubtitle">
+        <!-- 网络或后端校验错误保留在当前问题内，避免丢失已填写草稿。 -->
         <view v-if="errorMessage" class="error-box">
           <text>{{ errorMessage }}</text>
           <text class="error-action" @tap="retry">重试</text>
         </view>
 
+        <!-- 身份决定后续文案以及后端 gender 字段。 -->
         <view v-if="step === 'role'" class="choices">
           <ChoiceButton label="宝妈" hint="我是正在经历孕期的妈妈" :selected="draft.role === 'MOTHER'" @tap="chooseRole('MOTHER')" />
           <ChoiceButton label="宝爸" hint="我是一起准备迎接宝宝的爸爸" :selected="draft.role === 'FATHER'" @tap="chooseRole('FATHER')" />
@@ -28,6 +33,7 @@
           <text class="field-note">2～20 个字即可，之后也可以在“我的”里修改。</text>
         </view>
 
+        <!-- 新建家庭和加入家庭从这里进入两条不同的问题分支。 -->
         <view v-else-if="step === 'family-action'" class="choices">
           <ChoiceButton label="新建家庭" hint="和伴侣一起开始准备" :selected="draft.familyAction === 'CREATE'" @tap="chooseFamilyAction('CREATE')" />
           <ChoiceButton label="加入家庭" hint="输入家庭码或扫描邀请二维码" :selected="draft.familyAction === 'JOIN'" @tap="chooseFamilyAction('JOIN')" />
@@ -55,6 +61,7 @@
           <text class="field-note">家庭码区分大小写，请向伴侣确认后再提交。</text>
         </view>
 
+        <!-- 真正加入前仅展示安全的家庭摘要，让用户再次确认目标家庭。 -->
         <view v-else-if="step === 'join-preview'" class="preview-box">
           <text class="preview-kicker">邀请确认</text>
           <text class="preview-title">{{ familyPreview.name || '一个待迎接宝宝的家庭' }}</text>
@@ -62,6 +69,7 @@
           <view class="preview-meta"><text>家庭码</text><text>{{ draft.familyCode }}</text></view>
         </view>
 
+        <!-- 操作区根据当前步骤决定返回、跳过和主按钮是否出现。 -->
         <view class="actions">
           <button v-if="canGoBack" class="ghost-button" @tap="goBack">返回</button>
           <button v-if="step === 'baby-nickname'" class="ghost-button" @tap="skipBabyNickname">稍后再说</button>
@@ -69,6 +77,7 @@
         </view>
       </QuestionStage>
     </view>
+    <!-- 隐私用途说明。 -->
     <view class="footer-note"><text>你的信息只用于家庭协作</text><text class="footer-dot">·</text><text>随时可以修改</text></view>
   </view>
 </template>
@@ -81,29 +90,57 @@ import { completeOnboarding, previewFamilyInvite } from '../../services/onboardi
 import { getOnboardingDraft, saveOnboardingDraft, clearOnboardingDraft } from '../../utils/session'
 
 export default {
+  // QuestionStage 负责换题动画，ChoiceButton 负责统一选项视觉。
   components: { QuestionStage, ChoiceButton },
+  /**
+   * 创建首次资料补充页面状态。
+   * @returns {Object} 页面加载态、步骤状态、家庭预览和用户草稿。
+   */
   data() {
     return {
+      // 是否仍在创建匿名会话并读取当前用户。
       loading: true,
+      // 是否正在预览邀请或提交资料，用于阻止重复请求。
       busy: false,
+      // 当前需要展示给用户的网络或业务错误。
       errorMessage: '',
+      // 当前问题键，同时驱动页面内容、进度和换题动画。
       step: 'role',
+      // 家庭码预览接口返回的安全家庭摘要。
       familyPreview: {},
-      draft: { role: '', nickname: '', familyAction: '', expectedDate: '', babyNickname: '', familyCode: '' }
+      // 首次资料补充草稿；每次关键修改都会同步到本地存储。
+      draft: {
+        // MOTHER 或 FATHER，用于确定性别和家庭成员身份。
+        role: '',
+        // 用户希望在家庭空间内显示的称呼。
+        nickname: '',
+        // CREATE 表示新建家庭，JOIN 表示加入已有家庭。
+        familyAction: '',
+        // 新建家庭时必填的预产期，格式为 YYYY-MM-DD。
+        expectedDate: '',
+        // 可跳过的宝宝小名。
+        babyNickname: '',
+        // 加入家庭时由输入或扫码得到的邀请码。
+        familyCode: ''
+      }
     }
   },
   computed: {
+    /** @returns {string} 日期选择器允许选择的最早日期。 */
     today() {
       const date = new Date()
       const month = String(date.getMonth() + 1).padStart(2, '0')
       const day = String(date.getDate()).padStart(2, '0')
       return `${date.getFullYear()}-${month}-${day}`
     },
+    /** @returns {string} 当前问题对应的“序号 / 总数”文案。 */
     stepLabel() {
       const position = { role: 1, nickname: 2, 'family-action': 3, 'due-date': 4, 'baby-nickname': 5, 'join-method': 4, 'join-code': 5, 'join-preview': 5 }[this.step]
       return `${position || 1} / 5`
     },
+    /** @returns {string} 当前问题上方的小标题。 */
     eyebrow() { return this.step === 'join-preview' ? '一起准备' : 'WELCOME TO NOT STAND BY' },
+    /** @returns {string} 根据身份和步骤生成的问题标题。 */
     questionTitle() {
       const roleName = this.draft.role === 'FATHER' ? '宝爸' : '宝妈'
       return {
@@ -117,6 +154,7 @@ export default {
         'join-preview': '确认加入这个家庭吗？'
       }[this.step]
     },
+    /** @returns {string} 当前问题的辅助解释。 */
     questionSubtitle() {
       return {
         role: '选一个最符合你现在身份的选项。',
@@ -129,14 +167,24 @@ export default {
         'join-preview': ''
       }[this.step]
     },
+    /** @returns {string} 当前主按钮文案。 */
     primaryLabel() {
       return { role: '继续', nickname: '继续', 'family-action': this.draft.familyAction === 'JOIN' ? '下一步' : '继续', 'due-date': '继续', 'baby-nickname': '完成设置', 'join-code': '查找家庭', 'join-preview': '确认加入' }[this.step] || '继续'
     },
+    /** @returns {boolean} 当前步骤是否需要显示主按钮。 */
     showPrimary() { return ['role', 'nickname', 'family-action', 'due-date', 'baby-nickname', 'join-code', 'join-preview'].includes(this.step) },
+    /** @returns {boolean} 当前是否允许返回上一题。 */
     canGoBack() { return this.step !== 'role' && !this.busy }
   },
+  /** 页面加载后立即准备匿名会话并判断是否需要继续引导。 */
   onLoad() { this.bootstrap() },
   methods: {
+    /**
+     * 恢复本地草稿、建立匿名会话并读取后端用户状态。
+     * 已完成资料补充的用户直接重启到首页，未完成用户留在当前引导页。
+     *
+     * @returns {Promise<void>}
+     */
     async bootstrap() {
       this.loading = true
       this.errorMessage = ''
@@ -153,21 +201,40 @@ export default {
         this.loading = false
       }
     },
+    /** @returns {void} 在错误提示中重新执行页面初始化。 */
     retry() { this.bootstrap() },
+    /** @returns {void} 把当前草稿保存到本地，防止退出页面后内容丢失。 */
     persist() { saveOnboardingDraft(this.draft) },
+    /** @param {'MOTHER'|'FATHER'} role 选择的家庭身份。 @returns {void} */
     chooseRole(role) { this.draft.role = role; this.persist(); this.nextStep('nickname') },
+    /** @param {'CREATE'|'JOIN'} action 家庭操作。 @returns {void} */
     chooseFamilyAction(action) { this.draft.familyAction = action; this.persist(); this.nextStep(action === 'CREATE' ? 'due-date' : 'join-method') },
+    /** @returns {void} 昵称合法时进入家庭方式问题。 */
     nextFromNickname() { if (this.validNickname()) this.nextStep('family-action') },
+    /**
+     * 校验昵称的最小长度并在页面上反馈。
+     * @returns {boolean} 昵称是否满足当前前端规则。
+     */
     validNickname() {
       if ((this.draft.nickname || '').length < 2) { uni.showToast({ title: '请至少输入 2 个字', icon: 'none' }); return false }
       return true
     },
+    /** @param {Object} event uni picker 的 change 事件。 @returns {void} */
     onDueDateChange(event) { this.draft.expectedDate = event.detail.value; this.persist() },
+    /** @param {string} step 目标问题键。 @returns {void} */
     nextStep(step) { this.errorMessage = ''; this.step = step; this.persist() },
+    /**
+     * 根据当前分支回到逻辑上的上一题，而不是依赖浏览器历史。
+     * @returns {void}
+     */
     goBack() {
       const previous = { nickname: 'role', 'family-action': 'nickname', 'due-date': 'family-action', 'baby-nickname': 'due-date', 'join-method': 'family-action', 'join-code': 'join-method', 'join-preview': 'join-code' }[this.step]
       if (previous) this.step = previous
     },
+    /**
+     * 统一处理主按钮：先校验当前问题，再决定换题、预览家庭或提交资料。
+     * @returns {void|Promise<void>}
+     */
     handlePrimary() {
       if (this.step === 'role') return this.draft.role ? this.nextStep('nickname') : uni.showToast({ title: '请选择宝爸或宝妈', icon: 'none' })
       if (this.step === 'nickname') return this.nextFromNickname()
@@ -177,6 +244,10 @@ export default {
       if (this.step === 'join-code') return this.previewInvite()
       if (this.step === 'join-preview') return this.submit()
     },
+    /**
+     * 调用家庭邀请预览接口，成功后进入确认页，失败时保留家庭码供用户修改。
+     * @returns {Promise<void>}
+     */
     async previewInvite() {
       if (!this.draft.familyCode) { uni.showToast({ title: '请输入家庭码', icon: 'none' }); return }
       this.busy = true; this.errorMessage = ''
@@ -184,6 +255,10 @@ export default {
       catch (error) { this.errorMessage = error.message || '家庭码无效或已过期' }
       finally { this.busy = false }
     },
+    /**
+     * 调用系统扫码能力，从二维码参数或纯文本中提取家庭码并立即预览。
+     * @returns {void}
+     */
     scanInvite() {
       uni.scanCode({ onlyFromCamera: false, success: result => {
         const raw = String(result.result || '')
@@ -192,7 +267,14 @@ export default {
         this.persist(); this.previewInvite()
       }, fail: () => uni.showToast({ title: '没有读取到家庭码', icon: 'none' }) })
     },
+    /** @returns {void} 清空宝宝小名后按正常流程提交。 */
     skipBabyNickname() { this.draft.babyNickname = ''; this.submit() },
+    /**
+     * 完成最终必填校验并把整份草稿提交给后端统一引导接口。
+     * 成功后删除本地草稿并重启到首页；失败时保留草稿和当前步骤。
+     *
+     * @returns {Promise<void>}
+     */
     async submit() {
       if (this.busy) return
       if (!this.draft.nickname || !this.draft.role || !this.draft.familyAction) { uni.showToast({ title: '请先完成前面的信息', icon: 'none' }); return }
@@ -212,6 +294,7 @@ export default {
 </script>
 
 <style scoped>
+/* 首次引导独立使用深色黑板背景，与登录后的明亮看板形成阶段区分。 */
 page { background: #17251f; }
 .onboarding-page { min-height: 100vh; box-sizing: border-box; padding: 48px 24px 26px; background: #17251f; color: #fffdf3; display: flex; flex-direction: column; }
 .topbar { display: flex; justify-content: space-between; align-items: flex-start; }

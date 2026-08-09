@@ -26,7 +26,11 @@
 
 新增请求与会话层：`services/http.js`、`services/auth.js`、`services/onboarding.js`、`utils/session.js`。未提交草稿保存在本地，完成状态以后端 `GET /api/v1/users/me` 为准。
 
+前端自有 Vue/JavaScript 已补齐说明性注释：数据字段和模型使用行内说明或 JSDoc，方法写明参数、返回值和职责，所有后端接口调用都标注了 HTTP 路径，模板中的关键页面分支和数据流也有说明。以后新增字段、方法、接口封装或关键业务分支时应同步补充同等粒度的注释；JSON 配置文件不支持注释，其用途记录在本交接文档。
+
 默认接口地址是 `http://127.0.0.1:8080`。真机不能用电脑的 `127.0.0.1`，应将存储项 `nsb_api_base_url` 或构建变量 `VUE_APP_API_BASE_URL` 设置为电脑局域网地址，例如 `http://192.168.1.10:8080`，并保证手机和电脑在同一网络。
+
+后端数据库明确采用无外键策略，跨表 ID 只作逻辑关联；详情和迁移说明见后端 `TASK_HANDOFF.md` 与 `V2__remove_foreign_keys.sql`。
 
 HBuilderX 曾把 `pages/index/index.vue` 误判为 GBK。根目录 `.editorconfig` 固定 `utf-8-bom`，中文源码保留首行编码标记；不要删除这些标记。产品正式名称只能使用“不叉手”。
 

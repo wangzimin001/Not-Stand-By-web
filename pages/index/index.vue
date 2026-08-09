@@ -1,7 +1,9 @@
 <!-- 中文编码标记：本项目源文件统一使用 UTF-8。 -->
 <template>
   <view class="page">
+    <!-- 兼容刘海屏和状态栏的顶部安全区。 -->
     <view class="safe-area"></view>
+    <!-- 所有主标签共享的品牌标题和家庭账号入口。 -->
     <view class="topbar">
       <view class="brand-block">
         <text class="eyebrow">NOT STAND BY</text>
@@ -14,7 +16,9 @@
       </view>
     </view>
 
+    <!-- 主内容区根据 activeTab 切换日历、任务、物品和个人中心。 -->
     <scroll-view scroll-y class="content">
+      <!-- 日历首页：孕期指标、今日安排和本周提醒。 -->
       <block v-if="activeTab === 'calendar'">
         <view class="date-line"><text>2026 年 8 月 8 日 · 周六</text><text class="sun-mark">☼</text></view>
 
@@ -47,6 +51,7 @@
         <view class="reminder-strip"><view class="reminder-icon">!</view><view><text class="reminder-title">本周提醒</text><text class="reminder-copy">宝宝正在练习吞咽，规律产检和充足休息都很重要。</text></view></view>
       </block>
 
+      <!-- 任务页：筛选系统/夫妻任务，并支持指派和完成确认。 -->
       <block v-else-if="activeTab === 'tasks'">
         <view class="page-heading"><text class="heading">任务</text><text class="heading-note">把要做的事，分给两个人</text></view>
         <view class="filter-row dark-filter"><text :class="{ selected: taskFilter === 'all' }" @tap="taskFilter = 'all'">全部</text><text :class="{ selected: taskFilter === 'system' }" @tap="taskFilter = 'system'">系统提醒</text><text :class="{ selected: taskFilter === 'couple' }" @tap="taskFilter = 'couple'">夫妻任务</text></view>
@@ -54,6 +59,7 @@
         <view v-for="task in filteredTasks" :key="task.id" class="task-card" :class="task.type"><view class="task-card-top"><text class="tag">{{ task.type === 'system' ? '系统提醒' : '夫妻任务' }}</text><text class="task-due">{{ task.due }}</text></view><view class="task-card-main"><text class="check large" :class="{ checked: task.done }" @tap.stop="toggleTask(task)">{{ task.done ? '✓' : '' }}</text><view><text class="task-name big" :class="{ strike: task.done }">{{ task.name }}</text><text class="task-owner">{{ task.owner }}</text></view></view></view>
       </block>
 
+      <!-- 物品清单页：按类别查看准备状态。 -->
       <block v-else-if="activeTab === 'items'">
         <view class="page-heading"><text class="heading">物品清单</text><text class="heading-note">一起准备，少一点慌张</text></view>
         <view class="item-summary"><view><text class="summary-number">18</text><text class="summary-label"> 件已准备</text></view><view class="summary-progress"><view class="summary-bar"></view></view><text class="summary-percent">64%</text></view>
@@ -62,6 +68,7 @@
         <view class="add-item" @tap="addItem"><text class="add-item-icon">＋</text><text>添加一件物品</text></view>
       </block>
 
+      <!-- 个人中心：用户、伴侣绑定状态和常规设置入口。 -->
       <block v-else>
         <view class="page-heading"><text class="heading">我的</text><text class="heading-note">我们一起迎接新成员</text></view>
         <view class="profile-card"><view class="avatar">林</view><view class="profile-copy"><text class="profile-name">林女士</text><text class="profile-role">准妈妈 · 孕 22 周</text></view><text class="profile-arrow">→</text></view>
@@ -70,7 +77,9 @@
       </block>
     </scroll-view>
 
+    <!-- 悬浮按钮会根据当前标签映射到最常用的新增操作。 -->
     <view class="floating-action" @tap="primaryAction"><text>＋</text></view>
+    <!-- 自定义胶囊底部导航。 -->
     <view class="bottom-nav">
       <view v-for="tab in tabs" :key="tab.key" class="nav-item" :class="{ active: activeTab === tab.key }" @tap="activeTab = tab.key">
         <view class="nav-icon-wrap"><text class="nav-icon">{{ tab.icon }}</text></view>
@@ -81,52 +90,131 @@
 </template>
 
 <script>
+/**
+ * 首页筛选项。
+ * @typedef {Object} DashboardFilter
+ * @property {string} key 程序内部使用的稳定筛选键。
+ * @property {string} label 展示给用户的中文名称。
+ */
+
+/**
+ * 底部导航项。
+ * @typedef {Object} DashboardTab
+ * @property {string} key 标签唯一键，同时用于决定页面分支。
+ * @property {string} label 标签中文名称。
+ * @property {string} icon 当前原型使用的字符图标。
+ */
+
+/**
+ * 首页和任务页共用的任务模型。
+ * @typedef {Object} DashboardTask
+ * @property {number} id 任务唯一标识。
+ * @property {string} name 任务标题。
+ * @property {string} owner 当前负责人。
+ * @property {string} due 截止时间或完成状态文案。
+ * @property {'system'|'couple'} type 系统提醒或夫妻任务。
+ * @property {boolean} done 是否已完成。
+ */
+
+/**
+ * 物品清单原型数据模型。
+ * @typedef {Object} ChecklistItem
+ * @property {string} name 物品名称。
+ * @property {string} detail 尺码、容量或材质等分类属性摘要。
+ * @property {number} quantity 计划准备数量。
+ * @property {string} unit 与物品匹配的数量单位。
+ * @property {string} category 所属清单分类。
+ * @property {string} symbol 当前原型使用的示意字符。
+ * @property {string} status 用户可读的准备状态。
+ * @property {string} statusClass 状态对应的视觉类名。
+ */
+
 export default {
+  /**
+   * 创建首页原型所需的标签、筛选与演示数据。
+   * @returns {Object} 首页响应式状态。
+   */
   data() {
     return {
+      // 当前底部导航标签。
       activeTab: 'calendar',
+      // 日历首页“今天的安排”筛选条件。
       homeFilter: 'all',
+      // 任务页的任务来源筛选条件。
       taskFilter: 'all',
+      // 物品清单当前分类。
       itemCategory: '待产包',
+      // 顶部家庭账号胶囊展示名称。
       profileName: '林女士',
+      /** @type {DashboardFilter[]} 日历首页筛选项。 */
       homeFilters: [{ key: 'all', label: '全部' }, { key: 'pending', label: '待完成' }, { key: 'done', label: '已完成' }],
+      /** @type {DashboardTab[]} 底部导航定义。 */
       tabs: [{ key: 'calendar', label: '日历', icon: '⌂' }, { key: 'tasks', label: '任务', icon: '✓' }, { key: 'items', label: '清单', icon: '▤' }, { key: 'mine', label: '我的', icon: '●' }],
+      // 物品清单支持的分类标签。
       categories: ['待产包', '衣物', '喂养', '护理'],
+      // 个人中心的设置入口名称。
       settings: ['通知与提醒', '孕周设置', '关于不叉手'],
+      /** @type {DashboardTask[]} 当前 UI 原型使用的任务数据，后续由任务接口替换。 */
       settingsData: [{ name: '涂抹妊娠油', owner: '林女士', due: '今天', type: 'system', done: false, id: 1 }, { name: '确认待产包清单', owner: '周先生', due: '周日', type: 'couple', done: false, id: 2 }, { name: '预约下次产检', owner: '林女士', due: '已完成', type: 'system', done: true, id: 3 }],
+      /** @type {ChecklistItem[]} 当前 UI 原型使用的物品数据，后续由清单接口替换。 */
       itemsData: [{ name: '连体衣', detail: '59码 · 纯棉', quantity: 3, unit: '件', category: '衣物', symbol: '衣', status: '准备中', statusClass: 'preparing' }, { name: '奶瓶', detail: '宽口径 · 240ml', quantity: 2, unit: '个', category: '喂养', symbol: '瓶', status: '未准备', statusClass: 'waiting' }, { name: '产褥垫', detail: 'XL · 加长款', quantity: 1, unit: '包', category: '待产包', symbol: '垫', status: '准备完成', statusClass: 'ready' }]
     }
   },
   computed: {
+    /** @returns {string} 当前底部标签的中文标题。 */
     currentTabLabel() { return this.tabs.find(tab => tab.key === this.activeTab).label },
+    /** @returns {number} 全部任务中尚未完成的数量。 */
     pendingTaskCount() { return this.settingsData.filter(task => !task.done).length },
+    /** @returns {number} 今天到期且尚未完成的任务数量。 */
     todayPendingCount() { return this.settingsData.filter(task => !task.done && task.due === '今天').length },
+    /** @returns {DashboardTask[]} 日历原型中展示的今日任务子集。 */
     todayTasks() { return this.settingsData.slice(0, 2) },
+    /** @returns {DashboardTask[]} 应用首页筛选后的今日安排。 */
     agendaTasks() {
       if (this.homeFilter === 'pending') return this.todayTasks.filter(task => !task.done)
       if (this.homeFilter === 'done') return this.todayTasks.filter(task => task.done)
       return this.todayTasks
     },
+    /** @returns {DashboardTask[]} 任务页按来源筛选后的列表。 */
     filteredTasks() { return this.taskFilter === 'all' ? this.settingsData : this.settingsData.filter(item => item.type === this.taskFilter) },
+    /** @returns {ChecklistItem[]} 当前物品分类下需要展示的清单。 */
     visibleItems() { return this.itemsData.filter(item => item.category === this.itemCategory || (this.itemCategory === '待产包' && item.category === '待产包')) }
   },
   methods: {
+    /**
+     * 切换任务完成状态；当前原型只更新本地响应式数据。
+     * @param {DashboardTask} task 被点击的任务。
+     * @returns {void}
+     */
     toggleTask(task) { task.done = !task.done },
+    /**
+     * 根据当前页面分发悬浮按钮操作：任务页指派任务，清单页添加物品，其余页面显示鼓励提示。
+     * @returns {void}
+     */
     primaryAction() {
       if (this.activeTab === 'tasks') return this.assignTask()
       if (this.activeTab === 'items') return this.addItem()
       uni.showToast({ title: '每天完成一件小事就很好', icon: 'none' })
     },
+    /**
+     * 打开可输入的任务指派弹窗，并把确认后的夫妻任务插入列表顶部。
+     * 后续接入后端时，应在接口成功后再更新本地列表。
+     *
+     * @returns {void}
+     */
     assignTask() {
       uni.showModal({ title: '指派夫妻任务', editable: true, placeholderText: '例如：周末一起整理待产包', success: result => { if (result.confirm && result.content) { this.settingsData.unshift({ name: result.content, owner: '周先生', due: '待确认', type: 'couple', done: false, id: Date.now() }); uni.showToast({ title: '任务已发出', icon: 'none' }) } } })
     },
+    /** @returns {void} 显示物品添加功能的当前占位反馈。 */
     addItem() { uni.showToast({ title: '物品添加入口已准备好', icon: 'none' }) },
+    /** @returns {void} 显示家庭空间与伴侣绑定入口的当前占位反馈。 */
     showPairTip() { uni.showToast({ title: '这是你们共同的空间', icon: 'none' }) }
   }
 }
 </script>
 
 <style scoped>
+/* 登录后的主界面统一采用明亮米白看板风格。 */
 page { background: #f8f7ef; }
 .page { min-height: 100vh; box-sizing: border-box; padding-bottom: 112px; background: #f8f7ef; color: #0b0c0b; font-family: "Arial Rounded MT Bold", "PingFang SC", "Microsoft YaHei", sans-serif; }
 .safe-area { height: env(safe-area-inset-top); }
