@@ -1,9 +1,8 @@
 <!-- 中文编码标记：本项目源文件统一使用 UTF-8。 -->
 <template>
   <view class="onboarding-page">
-    <!-- 品牌与总步骤进度始终固定在页面顶部。 -->
+    <!-- 总步骤进度始终固定在页面顶部。 -->
     <view class="topbar">
-      <view class="brand-mark"><text>不叉手</text><text class="brand-sub">NOT STAND BY</text></view>
       <text class="step-count" v-if="!loading">{{ stepLabel }}</text>
     </view>
 
@@ -15,7 +14,7 @@
 
     <!-- QuestionStage 根据 step 切换问题，并统一处理渐隐、渐显动画。 -->
     <view v-else class="content">
-      <QuestionStage ref="questionStage" :eyebrow="eyebrow" :title="questionTitle" :subtitle="questionSubtitle">
+      <QuestionStage ref="questionStage" :title="questionTitle" :subtitle="questionSubtitle">
         <!-- 网络或后端校验错误保留在当前问题内，避免丢失已填写草稿。 -->
         <view v-if="errorMessage" class="error-box">
           <text>{{ errorMessage }}</text>
@@ -77,8 +76,6 @@
         </view>
       </QuestionStage>
     </view>
-    <!-- 隐私用途说明。 -->
-    <view class="footer-note"><text>你的信息只用于家庭协作</text><text class="footer-dot">·</text><text>随时可以修改</text></view>
   </view>
 </template>
 
@@ -138,8 +135,6 @@ export default {
       const position = { role: 1, nickname: 2, 'family-action': 3, 'due-date': 4, 'baby-nickname': 5, 'join-method': 4, 'join-code': 5, 'join-preview': 5 }[this.step]
       return `${position || 1} / 5`
     },
-    /** @returns {string} 当前问题上方的小标题。 */
-    eyebrow() { return this.step === 'join-preview' ? '一起准备' : 'WELCOME TO NOT STAND BY' },
     /** @returns {string} 根据身份和步骤生成的问题标题。 */
     questionTitle() {
       const roleName = this.draft.role === 'FATHER' ? '宝爸' : '宝妈'
@@ -306,12 +301,10 @@ export default {
 /* 首次引导沿用主看板的暖米白、黑色与荧光黄，保持轻快统一的视觉语气。 */
 page { background: #f8f7ef; }
 .onboarding-page { width: 100%; min-height: 100vh; box-sizing: border-box; overflow-x: hidden; padding: calc(28px + env(safe-area-inset-top)) 24px calc(18px + env(safe-area-inset-bottom)); background: radial-gradient(circle at 88% 8%, rgba(234, 255, 63, .24), transparent 31%), #f8f7ef; color: #111212; display: flex; flex-direction: column; }
-.topbar, .content, .state-panel, .footer-note { width: 100%; max-width: 480px; margin-left: auto; margin-right: auto; box-sizing: border-box; }
-.topbar { display: flex; justify-content: space-between; align-items: flex-start; flex: none; }
-.brand-mark { display: flex; flex-direction: column; color: #111212; font-size: 18px; font-weight: 800; letter-spacing: 2px; }
-.brand-sub { color: #8b8e86; font-size: 9px; letter-spacing: 2px; margin-top: 5px; }
+.topbar, .content, .state-panel { width: 100%; max-width: 480px; margin-left: auto; margin-right: auto; box-sizing: border-box; }
+.topbar { display: flex; justify-content: flex-end; align-items: flex-start; flex: none; }
 .step-count { color: #777b74; font-size: 12px; padding-top: 5px; }
-.content { flex: 1; min-width: 0; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 50px 0 24px; }
+.content { flex: 1; min-width: 0; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 28px 0 20px; }
 .state-panel { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 0 10px; }
 .state-title { color: #111212; font-size: 24px; font-weight: 800; }
 .state-copy { color: #777b74; font-size: 14px; line-height: 1.7; margin-top: 12px; }
@@ -335,22 +328,17 @@ button { margin: 0; }
 .ghost-button { color: #555951; border: 1px solid #c9cbc4; background: rgba(255, 255, 255, .72); }
 .error-box { display: flex; align-items: center; justify-content: space-between; color: #a34e39; font-size: 12px; line-height: 1.5; padding: 10px 12px; border: 1px solid #efad9c; border-radius: 10px; margin-bottom: 16px; background: #fff2ed; overflow-wrap: anywhere; }
 .error-action { color: #111212; margin-left: 12px; font-weight: 700; }
-.footer-note { text-align: center; color: #94978f; font-size: 11px; }
-.footer-dot { padding: 0 7px; color: #8d951f; }
-
 /* 窄屏手机减少水平留白，保证三个操作按钮和长标题仍有足够空间。 */
 @media screen and (max-width: 350px) {
   .onboarding-page { padding-left: 18px; padding-right: 18px; }
-  .content { padding-top: 34px; padding-bottom: 18px; }
+  .content { padding-top: 24px; padding-bottom: 18px; }
   .actions { gap: 6px; margin-top: 23px; }
   .primary-button, .ghost-button { height: 45px; line-height: 45px; padding: 0 5px; font-size: 14px; }
-  .footer-note { font-size: 10px; }
 }
 
 /* 矮屏手机让内容自然向下流动并允许页面滚动，避免垂直居中造成上下裁切。 */
 @media screen and (max-height: 680px) {
   .onboarding-page { padding-top: calc(20px + env(safe-area-inset-top)); }
-  .content { flex: none; align-items: flex-start; padding-top: 28px; padding-bottom: 12px; }
-  .footer-note { margin-top: 18px; }
+  .content { flex: none; align-items: flex-start; padding-top: 22px; padding-bottom: 12px; }
 }
 </style>

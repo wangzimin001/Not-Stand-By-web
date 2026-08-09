@@ -2,7 +2,6 @@
 <template>
   <!-- phase 由组件方法驱动，避免使用 App 端不支持的 Vue Transition 内置组件。 -->
   <view class="stage" :class="`stage-${phase}`">
-    <view v-if="eyebrow" class="eyebrow">{{ eyebrow }}</view>
     <text class="question">{{ title }}</text>
     <text v-if="subtitle" class="subtitle">{{ subtitle }}</text>
     <view class="stage-content">
@@ -18,9 +17,7 @@ export default {
     // 当前步骤的问题标题。
     title: { type: String, default: '' },
     // 标题下方的补充说明。
-    subtitle: { type: String, default: '' },
-    // 标题上方的小型阶段标识。
-    eyebrow: { type: String, default: '' }
+    subtitle: { type: String, default: '' }
   },
   // 新问题完成渐显时通知父页面，预留埋点或自动聚焦能力。
   emits: ['transition-end'],
@@ -82,14 +79,12 @@ export default {
 /* 新问题从下方回到原位，和旧问题的向上离场组成连贯的换题方向。 */
 .stage-enter-pending { opacity: 0; transform: translateY(18px); transition: none; }
 .stage-entering { opacity: 1; transform: translateY(0); transition: opacity .48s ease, transform .48s cubic-bezier(.2, .7, .2, 1); }
-.eyebrow { color: #73766d; font-size: 12px; letter-spacing: 2px; margin-bottom: 18px; text-transform: uppercase; }
 .question { display: block; color: #111212; font-size: 27px; font-weight: 800; line-height: 1.35; letter-spacing: 1px; overflow-wrap: anywhere; }
 .subtitle { display: block; color: #777b74; font-size: 14px; line-height: 1.65; margin-top: 11px; }
 .stage-content { margin-top: 29px; }
 
 /* 兼容约 320dp 的窄屏手机，避免长问题标题和操作区相互挤压。 */
 @media screen and (max-width: 350px) {
-  .eyebrow { margin-bottom: 14px; font-size: 11px; }
   .question { font-size: 24px; line-height: 1.3; }
   .subtitle { margin-top: 9px; font-size: 13px; }
   .stage-content { margin-top: 22px; }

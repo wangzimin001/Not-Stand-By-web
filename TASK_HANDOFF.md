@@ -24,7 +24,7 @@
 4. 新建家庭填写预产期，加入家庭扫码或输入家庭码；
 5. 新建家庭可填写“宝宝小名”，也可选择“稍后再说”。
 
-首次引导已改为与主看板一致的暖米白背景、黑色正文、白色选项卡和荧光黄主操作色。换题时旧问题用约 `420ms` 向上渐隐，新问题再用约 `480ms` 从下方渐显。uni-app 的 Vue 页面在 App 端不支持内置 `<transition>`，因此 `QuestionStage.swapQuestion` 使用明确的 `leaving → enter-pending → entering` CSS 阶段，并在旧内容完全隐藏后才更新父页面步骤；后续不要替换回 App 端不兼容的 Vue Transition。
+首次引导已改为与主看板一致的暖米白背景、黑色正文、白色选项卡和荧光黄主操作色。页面已按产品确认移除左上角品牌中英文、问题上方英文引导语和底部隐私说明，仅保留右上角步骤进度。换题时旧问题用约 `420ms` 向上渐隐，新问题再用约 `480ms` 从下方渐显。uni-app 的 Vue 页面在 App 端不支持内置 `<transition>`，因此 `QuestionStage.swapQuestion` 使用明确的 `leaving → enter-pending → entering` CSS 阶段，并在旧内容完全隐藏后才更新父页面步骤；后续不要替换回 App 端不兼容的 Vue Transition。
 
 新增请求与会话层：`services/http.js`、`services/auth.js`、`services/onboarding.js`、`utils/session.js`。未提交草稿保存在本地，完成状态以后端 `GET /api/v1/users/me` 为准。
 
