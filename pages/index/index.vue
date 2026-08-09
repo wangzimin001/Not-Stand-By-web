@@ -216,16 +216,18 @@ export default {
 <style scoped>
 /* 登录后的主界面统一采用明亮米白看板风格。 */
 page { background: #f8f7ef; }
-.page { min-height: 100vh; box-sizing: border-box; padding-bottom: 112px; background: #f8f7ef; color: #0b0c0b; font-family: "Arial Rounded MT Bold", "PingFang SC", "Microsoft YaHei", sans-serif; }
-.safe-area { height: env(safe-area-inset-top); }
-.topbar { display: flex; justify-content: space-between; align-items: center; padding: 23px 22px 10px; }
-.brand-block { min-width: 0; }
+.page { width: 100%; height: 100vh; min-height: 100vh; box-sizing: border-box; overflow: hidden; padding-bottom: calc(104px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; background: #f8f7ef; color: #0b0c0b; font-family: "Arial Rounded MT Bold", "PingFang SC", "Microsoft YaHei", sans-serif; }
+.safe-area { height: env(safe-area-inset-top); flex: none; }
+.topbar, .content { width: 100%; max-width: 560px; margin-left: auto; margin-right: auto; box-sizing: border-box; }
+.topbar { display: flex; justify-content: space-between; align-items: center; flex: none; padding: 23px 22px 10px; }
+.brand-block { min-width: 0; flex: 1; padding-right: 10px; }
 .eyebrow { display: block; color: #8c8e84; font-size: 10px; font-weight: 700; letter-spacing: 2px; }
-.page-title { display: block; max-width: 470rpx; margin-top: 8px; color: #0b0c0b; font-size: 30px; font-weight: 900; line-height: 1.15; }
-.account-chip { display: flex; align-items: center; gap: 7px; max-width: 185px; padding: 11px 13px; border-radius: 24px; background: #efefe9; color: #151616; font-size: 13px; font-weight: 700; white-space: nowrap; }
+.page-title { display: block; max-width: 100%; margin-top: 8px; color: #0b0c0b; font-size: 27px; font-weight: 900; line-height: 1.15; white-space: nowrap; }
+.account-chip { display: flex; align-items: center; gap: 7px; flex: none; max-width: 128px; padding: 10px 11px; border-radius: 24px; background: #efefe9; color: #151616; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.account-chip > text:nth-child(2) { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .account-dot { width: 10px; height: 10px; flex: none; border-radius: 50%; background: #0cc98a; }
 .chip-arrow { color: #7e817c; font-size: 17px; margin-left: 2px; }
-.content { height: calc(100vh - 120px); box-sizing: border-box; padding: 9px 22px 26px; }
+.content { flex: 1; min-height: 0; height: auto; padding: 9px 22px 26px; }
 .date-line { display: flex; justify-content: space-between; align-items: center; color: #8c8e84; font-size: 12px; }
 .sun-mark { color: #b7b8a5; font-size: 24px; }
 .metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 18px; }
@@ -257,7 +259,31 @@ page { background: #f8f7ef; }
 .task-card { display: block; margin-bottom: 10px; padding: 15px; border-radius: 15px; background: #fff; box-shadow: 0 7px 18px rgba(40, 40, 25, .05); }.task-card.system { border-top: 4px solid #eaff3f; }.task-card.couple { border-top: 4px solid #bdebdc; }.task-card-top { display: flex; justify-content: space-between; color: #959791; font-size: 10px; }.task-card-main { display: flex; align-items: center; gap: 11px; margin-top: 11px; }.check { width: 24px; height: 24px; flex: none; display: grid; place-items: center; border: 1.5px solid #9ca099; border-radius: 50%; color: #fff; font-size: 14px; }.check.checked { border-color: #111212; background: #111212; }.task-name { display: block; color: #161716; font-size: 13px; }.big { font-size: 15px; font-weight: 800; }.task-owner { display: block; margin-top: 4px; color: #a1a39e; font-size: 10px; }.strike { color: #a7a9a3; text-decoration: line-through; }
 .item-summary { display: flex; align-items: center; justify-content: space-between; padding: 4px 0 19px; }.summary-number { color: #111212; font-size: 30px; font-weight: 900; }.summary-label { color: #8c8e84; font-size: 12px; }.summary-progress { width: 39%; height: 7px; overflow: hidden; border-radius: 8px; background: #e6e6de; }.summary-bar { width: 64%; height: 100%; background: #111212; }.summary-percent { color: #777a73; font-size: 12px; font-weight: 700; }.category-scroll { display: flex; gap: 17px; margin-bottom: 13px; white-space: nowrap; }.category-scroll text { padding-bottom: 7px; color: #a0a29b; font-size: 12px; font-weight: 700; }.category-scroll text.active { border-bottom: 2px solid #111212; color: #111212; }
 .item-card { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; padding: 13px; border-radius: 15px; background: #fff; box-shadow: 0 7px 18px rgba(40, 40, 25, .05); }.item-illustration { width: 48px; height: 48px; display: grid; place-items: center; flex: none; border-radius: 50%; background: #f1f1ed; color: #222322; font-size: 12px; font-weight: 900; }.item-info { flex: 1; min-width: 0; }.item-name { display: block; color: #151615; font-size: 15px; font-weight: 900; }.item-meta { display: block; margin-top: 4px; color: #a1a39e; font-size: 11px; }.item-status { display: inline-block; margin-top: 7px; padding: 4px 8px; border-radius: 7px; font-size: 10px; font-weight: 700; }.preparing { background: #fff1a4; color: #6e681e; }.waiting { background: #efefeb; color: #858781; }.ready { background: #d7f5cf; color: #39803b; }.item-more { color: #969891; letter-spacing: 2px; }.add-item { display: flex; align-items: center; justify-content: center; gap: 7px; padding: 15px; border: 1px dashed #afb1a9; border-radius: 15px; color: #555851; font-size: 13px; font-weight: 700; }.add-item-icon { color: #111212; font-size: 22px; }
-.profile-card { display: flex; align-items: center; padding: 16px; border-radius: 16px; background: #fff; box-shadow: 0 7px 18px rgba(40, 40, 25, .05); }.avatar, .pair-avatar { display: grid; place-items: center; border-radius: 50%; }.avatar { width: 50px; height: 50px; margin-right: 12px; background: #eaff3f; color: #111212; font-size: 20px; font-weight: 900; }.profile-copy { flex: 1; }.profile-name { display: block; font-size: 17px; font-weight: 900; }.profile-role { display: block; margin-top: 4px; color: #94968f; font-size: 11px; }.profile-arrow, .setting-arrow { color: #858781; font-size: 18px; }.pair-card { display: flex; align-items: center; gap: 12px; margin-top: 11px; padding: 15px; border-radius: 16px; background: #111212; color: #fff; }.pair-avatars { display: flex; align-items: center; }.pair-avatar { width: 34px; height: 34px; border: 2px solid #111212; color: #111212; font-size: 12px; font-weight: 900; }.mom { background: #ffc8b8; }.dad { margin-left: -8px; background: #bdebdc; }.pair-plus { margin: 0 3px; color: #93958e; }.pair-copy { flex: 1; }.pair-title { color: #fff; font-size: 13px; }.pair-desc { display: block; margin-top: 4px; color: #a5a7a1; font-size: 10px; }.bound { padding: 5px 8px; border-radius: 7px; background: #eaff3f; color: #131414; font-size: 10px; font-weight: 900; }.settings-list { margin-top: 17px; overflow: hidden; border-radius: 15px; background: #fff; }.setting-row { display: flex; justify-content: space-between; align-items: center; padding: 17px 16px; border-bottom: 1px solid #f0efe9; color: #1d1e1d; font-size: 13px; }.setting-row:last-child { border-bottom: 0; }
+.profile-card { display: flex; align-items: center; padding: 16px; border-radius: 16px; background: #fff; box-shadow: 0 7px 18px rgba(40, 40, 25, .05); }.avatar, .pair-avatar { display: grid; place-items: center; border-radius: 50%; }.avatar { width: 50px; height: 50px; margin-right: 12px; background: #eaff3f; color: #111212; font-size: 20px; font-weight: 900; }.profile-copy { flex: 1; min-width: 0; }.profile-name { display: block; font-size: 17px; font-weight: 900; }.profile-role { display: block; margin-top: 4px; color: #94968f; font-size: 11px; }.profile-arrow, .setting-arrow { color: #858781; font-size: 18px; }.pair-card { display: flex; align-items: center; gap: 12px; margin-top: 11px; padding: 15px; border-radius: 16px; background: #111212; color: #fff; }.pair-avatars { display: flex; align-items: center; flex: none; }.pair-avatar { width: 34px; height: 34px; border: 2px solid #111212; color: #111212; font-size: 12px; font-weight: 900; }.mom { background: #ffc8b8; }.dad { margin-left: -8px; background: #bdebdc; }.pair-plus { margin: 0 3px; color: #93958e; }.pair-copy { flex: 1; min-width: 0; }.pair-title, .pair-desc { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }.pair-title { color: #fff; font-size: 13px; }.pair-desc { display: block; margin-top: 4px; color: #a5a7a1; font-size: 10px; }.bound { flex: none; padding: 5px 8px; border-radius: 7px; background: #eaff3f; color: #131414; font-size: 10px; font-weight: 900; }.settings-list { margin-top: 17px; overflow: hidden; border-radius: 15px; background: #fff; }.setting-row { display: flex; justify-content: space-between; align-items: center; padding: 17px 16px; border-bottom: 1px solid #f0efe9; color: #1d1e1d; font-size: 13px; }.setting-row:last-child { border-bottom: 0; }
 .floating-action { position: fixed; right: 24px; bottom: calc(92px + env(safe-area-inset-bottom)); z-index: 12; width: 64px; height: 64px; display: grid; place-items: center; border-radius: 50%; background: #111212; color: #fff; box-shadow: 0 9px 18px rgba(20, 20, 18, .2); }.floating-action text { margin-top: -4px; font-size: 45px; font-weight: 300; line-height: 1; }
-.bottom-nav { position: fixed; left: 22px; right: 22px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 10; display: flex; justify-content: space-around; align-items: center; height: 73px; padding: 0 8px; border-radius: 38px; background: #050606; }.nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-width: 55px; color: #fff; }.nav-icon-wrap { width: 47px; height: 47px; display: grid; place-items: center; border-radius: 50%; }.nav-item.active .nav-icon-wrap { background: #eaff3f; color: #080908; }.nav-icon { font-size: 25px; font-weight: 900; line-height: 1; }.nav-label { color: #a8aaa5; font-size: 9px; }.nav-item.active .nav-label { color: #eaff3f; font-weight: 800; }
+.bottom-nav { position: fixed; left: 50%; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 10; width: calc(100% - 44px); max-width: 516px; transform: translateX(-50%); display: flex; justify-content: space-around; align-items: center; height: 73px; padding: 0 8px; border-radius: 38px; background: #050606; }.nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-width: 55px; color: #fff; }.nav-icon-wrap { width: 47px; height: 47px; display: grid; place-items: center; border-radius: 50%; }.nav-item.active .nav-icon-wrap { background: #eaff3f; color: #080908; }.nav-icon { font-size: 25px; font-weight: 900; line-height: 1; }.nav-label { color: #a8aaa5; font-size: 9px; }.nav-item.active .nav-label { color: #eaff3f; font-weight: 800; }
+
+/* 约 320dp 的窄屏手机压缩边距与指标卡字号，防止顶部、双列卡片和底栏拥挤。 */
+@media screen and (max-width: 350px) {
+  .topbar { padding: 19px 16px 8px; }
+  .page-title { max-width: 100%; font-size: 24px; }
+  .account-chip { max-width: 104px; gap: 4px; padding: 8px 9px; font-size: 10px; }
+  .account-dot { width: 8px; height: 8px; }
+  .content { padding-left: 16px; padding-right: 16px; }
+  .metric-grid { gap: 8px; }
+  .metric-card { min-height: 132px; padding: 15px 12px 13px; border-radius: 18px; }
+  .metric-value > text:first-child { font-size: 36px; }
+  .metric-unit { margin-left: 3px; font-size: 14px; }
+  .metric-extra { margin-left: 4px; font-size: 10px; }
+  .metric-foot { font-size: 10px; }
+  .bottom-nav { width: calc(100% - 24px); height: 68px; }
+  .nav-item { min-width: 48px; }
+  .nav-icon-wrap { width: 43px; height: 43px; }
+  .floating-action { right: 16px; width: 56px; height: 56px; }
+}
+
+/* 平板或桌面预览保持手机信息密度，内容和悬浮操作统一围绕中间列排布。 */
+@media screen and (min-width: 600px) {
+  .floating-action { right: calc((100vw - 560px) / 2 + 24px); }
+}
 </style>

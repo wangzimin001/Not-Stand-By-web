@@ -61,10 +61,19 @@ export default {
 </script>
 
 <style scoped>
-.stage { opacity: 1; transform: translateY(0); transition: opacity .23s ease, transform .23s ease; }
+/* 占满手机内容区；在平板等宽屏设备上限制最大宽度，避免作为 Flex 子项按文字宽度收缩。 */
+.stage { width: 100%; max-width: 480px; min-width: 0; box-sizing: border-box; opacity: 1; transform: translateY(0); transition: opacity .23s ease, transform .23s ease; }
 .stage-hidden { opacity: 0; transform: translateY(8px); }
 .eyebrow { color: #e5bd65; font-size: 12px; letter-spacing: 2px; margin-bottom: 18px; text-transform: uppercase; }
-.question { display: block; color: #fffdf3; font-size: 29px; font-weight: 700; line-height: 1.35; letter-spacing: 1px; }
+.question { display: block; color: #fffdf3; font-size: 29px; font-weight: 700; line-height: 1.35; letter-spacing: 1px; overflow-wrap: anywhere; }
 .subtitle { display: block; color: #b8d0bf; font-size: 14px; line-height: 1.65; margin-top: 11px; }
 .stage-content { margin-top: 29px; }
+
+/* 兼容约 320dp 的窄屏手机，避免长问题标题和操作区相互挤压。 */
+@media screen and (max-width: 350px) {
+  .eyebrow { margin-bottom: 14px; font-size: 11px; }
+  .question { font-size: 26px; line-height: 1.3; }
+  .subtitle { margin-top: 9px; font-size: 13px; }
+  .stage-content { margin-top: 22px; }
+}
 </style>

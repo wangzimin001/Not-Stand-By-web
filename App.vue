@@ -10,6 +10,7 @@ export default {
 </script>
 
 <style>
-/* 所有页面共享的基础背景、文字颜色和中文字体回退。 */
-page { min-height: 100%; background: #f5f3ee; color: #18241f; font-family: "PingFang SC", "Microsoft YaHei", sans-serif; }
+/* 所有页面共享的基础背景、文字颜色、盒模型和中文字体回退。 */
+page { width: 100%; min-height: 100%; overflow-x: hidden; background: #f5f3ee; color: #18241f; font-family: "PingFang SC", "Microsoft YaHei", sans-serif; }
+view, scroll-view, button, input { box-sizing: border-box; }
 </style>

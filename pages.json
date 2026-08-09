@@ -15,6 +15,7 @@
     }
   ],
   "globalStyle": {
+    "pageOrientation": "portrait",
     "navigationBarTextStyle": "black",
     "navigationBarTitleText": "不叉手",
     "navigationBarBackgroundColor": "#F8F8F8",

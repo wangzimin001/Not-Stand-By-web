@@ -296,12 +296,13 @@ export default {
 <style scoped>
 /* 首次引导独立使用深色黑板背景，与登录后的明亮看板形成阶段区分。 */
 page { background: #17251f; }
-.onboarding-page { min-height: 100vh; box-sizing: border-box; padding: 48px 24px 26px; background: #17251f; color: #fffdf3; display: flex; flex-direction: column; }
-.topbar { display: flex; justify-content: space-between; align-items: flex-start; }
+.onboarding-page { width: 100%; min-height: 100vh; box-sizing: border-box; overflow-x: hidden; padding: calc(28px + env(safe-area-inset-top)) 24px calc(18px + env(safe-area-inset-bottom)); background: #17251f; color: #fffdf3; display: flex; flex-direction: column; }
+.topbar, .content, .state-panel, .footer-note { width: 100%; max-width: 480px; margin-left: auto; margin-right: auto; box-sizing: border-box; }
+.topbar { display: flex; justify-content: space-between; align-items: flex-start; flex: none; }
 .brand-mark { display: flex; flex-direction: column; color: #e5bd65; font-size: 18px; font-weight: 700; letter-spacing: 2px; }
 .brand-sub { color: #b8d0bf; font-size: 9px; letter-spacing: 2px; margin-top: 5px; }
 .step-count { color: #b8d0bf; font-size: 12px; padding-top: 5px; }
-.content { flex: 1; display: flex; align-items: center; padding: 62px 0 28px; }
+.content { flex: 1; min-width: 0; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 50px 0 24px; }
 .state-panel { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 0 10px; }
 .state-title { color: #fffdf3; font-size: 24px; font-weight: 700; }
 .state-copy { color: #b8d0bf; font-size: 14px; line-height: 1.7; margin-top: 12px; }
@@ -319,12 +320,28 @@ page { background: #17251f; }
 .preview-meta { display: flex; justify-content: space-between; color: #e5bd65; font-size: 12px; margin-top: 20px; }
 .actions { margin-top: 30px; display: flex; gap: 10px; }
 button { margin: 0; }
-.primary-button, .ghost-button { flex: 1; height: 49px; line-height: 49px; border-radius: 6px; font-size: 16px; }
+.primary-button, .ghost-button { flex: 1; min-width: 0; height: 49px; line-height: 49px; padding: 0 8px; border-radius: 6px; font-size: 16px; white-space: nowrap; }
 .primary-button { color: #17251f; background: #e5bd65; }
 .primary-button[disabled] { opacity: .55; }
 .ghost-button { color: #b8d0bf; border: 1px solid rgba(184, 208, 191, .48); background: transparent; }
-.error-box { display: flex; align-items: center; justify-content: space-between; color: #f3a995; font-size: 12px; line-height: 1.5; padding: 10px 12px; border: 1px solid rgba(243, 169, 149, .52); border-radius: 6px; margin-bottom: 16px; }
+.error-box { display: flex; align-items: center; justify-content: space-between; color: #f3a995; font-size: 12px; line-height: 1.5; padding: 10px 12px; border: 1px solid rgba(243, 169, 149, .52); border-radius: 6px; margin-bottom: 16px; overflow-wrap: anywhere; }
 .error-action { color: #e5bd65; margin-left: 12px; }
 .footer-note { text-align: center; color: #769081; font-size: 11px; }
 .footer-dot { padding: 0 7px; color: #e5bd65; }
+
+/* 窄屏手机减少水平留白，保证三个操作按钮和长标题仍有足够空间。 */
+@media screen and (max-width: 350px) {
+  .onboarding-page { padding-left: 18px; padding-right: 18px; }
+  .content { padding-top: 34px; padding-bottom: 18px; }
+  .actions { gap: 6px; margin-top: 23px; }
+  .primary-button, .ghost-button { height: 45px; line-height: 45px; padding: 0 5px; font-size: 14px; }
+  .footer-note { font-size: 10px; }
+}
+
+/* 矮屏手机让内容自然向下流动并允许页面滚动，避免垂直居中造成上下裁切。 */
+@media screen and (max-height: 680px) {
+  .onboarding-page { padding-top: calc(20px + env(safe-area-inset-top)); }
+  .content { flex: none; align-items: flex-start; padding-top: 28px; padding-bottom: 12px; }
+  .footer-note { margin-top: 18px; }
+}
 </style>
