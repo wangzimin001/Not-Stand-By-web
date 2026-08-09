@@ -1,82 +1,175 @@
-﻿<!-- 中文编码标记：本项目源文件统一使用 UTF-8。 -->
+<!-- 中文编码标记：本项目源文件统一使用 UTF-8。 -->
 <template>
   <view class="page">
-    <view class="chalk-header">
-      <view class="brand-row">
-        <view>
-          <text class="mini-label">NOT STAND BY</text>
-          <text class="brand">不叉手</text>
-        </view>
-        <view class="couple-chip" @tap="showPairTip"><text class="dot"></text><text>我们俩</text></view>
+    <view class="safe-area"></view>
+    <view class="topbar">
+      <view class="brand-block">
+        <text class="eyebrow">NOT STAND BY</text>
+        <text class="page-title">{{ activeTab === 'calendar' ? '今天，一起准备' : currentTabLabel }}</text>
       </view>
-      <view class="chalk-line"></view>
+      <view class="account-chip" @tap="showPairTip">
+        <text class="account-dot"></text>
+        <text>{{ profileName }}</text>
+        <text class="chip-arrow">⌄</text>
+      </view>
     </view>
 
     <scroll-view scroll-y class="content">
       <block v-if="activeTab === 'calendar'">
-        <view class="hello-row"><view><text class="greeting">早上好，林女士</text><text class="sub-greeting">今天也一起把小事做好</text></view><text class="sun">☼</text></view>
-        <view class="week-card doodle-border">
-          <view class="week-top"><text class="card-kicker">孕期进度</text><text class="week-date">2026.08.08</text></view>
-          <view class="week-number"><text>22</text><text class="week-unit">周</text><text class="week-days">+ 3 天</text></view>
-          <view class="progress-track"><view class="progress-value"></view></view>
-          <view class="week-foot"><text>距离预产期还有 125 天</text><text>约 55 cm</text></view>
+        <view class="date-line"><text>2026 年 8 月 8 日 · 周六</text><text class="sun-mark">☼</text></view>
+
+        <view class="metric-grid">
+          <view class="metric-card yellow-card">
+            <text class="metric-kicker">孕期进度</text>
+            <view class="metric-value"><text>22</text><text class="metric-unit">周</text><text class="metric-extra">+ 3 天</text></view>
+            <view class="metric-foot"><text>距离预产期 125 天</text><text class="eye">◉</text></view>
+          </view>
+          <view class="metric-card yellow-card">
+            <text class="metric-kicker">共同任务</text>
+            <view class="metric-value"><text>{{ pendingTaskCount }}</text><text class="metric-unit">项</text></view>
+            <view class="metric-foot"><text>今天还有 {{ todayPendingCount }} 项</text><text class="eye">◉</text></view>
+          </view>
         </view>
-        <view class="section-title"><text>宝宝正在发生什么</text><text class="arrow">→</text></view>
-        <view class="baby-card">
-          <view class="baby-sketch">✦</view>
-          <view class="baby-copy"><text class="baby-title">会听见你的声音了</text><text class="baby-desc">宝宝的听力逐渐发育，可以每天和 Ta 说说话。爸爸的声音也很重要。</text></view>
+
+        <view class="section-head"><text>今天的安排</text><text class="section-link" @tap="activeTab = 'tasks'">查看全部 →</text></view>
+        <view class="filter-row home-filter">
+          <text v-for="filter in homeFilters" :key="filter.key" :class="{ selected: homeFilter === filter.key }" @tap="homeFilter = filter.key">{{ filter.label }}</text>
         </view>
-        <view class="notice-card"><text class="notice-mark">!</text><view><text class="notice-title">这周要留意</text><text class="notice-body">规律作息，少量多餐。出现持续腹痛或出血请及时就医。</text></view></view>
-        <view class="section-title"><text>今天的共同任务</text><text class="see-all" @tap="activeTab = 'tasks'">查看全部</text></view>
-        <view v-for="task in todayTasks" :key="task.id" class="task-row" :class="{ done: task.done }" @tap="toggleTask(task)"><text class="check">{{ task.done ? '✓' : '' }}</text><view><text class="task-name">{{ task.name }}</text><text class="task-owner">{{ task.owner }}</text></view><text class="task-time">{{ task.time }}</text></view>
+        <view class="agenda-list">
+          <view v-for="task in agendaTasks" :key="task.id" class="agenda-card" :class="{ completed: task.done }" @tap="toggleTask(task)">
+            <view class="agenda-icon" :class="task.type"><text>{{ task.done ? '✓' : task.type === 'system' ? '◷' : '↗' }}</text></view>
+            <view class="agenda-copy"><text class="agenda-name">{{ task.name }}</text><text class="agenda-meta">{{ task.owner }} · {{ task.due }}</text></view>
+            <text class="agenda-state">{{ task.done ? '已完成' : task.due === '今天' ? '待完成' : '本周' }}</text>
+          </view>
+          <view v-if="!agendaTasks.length" class="empty-state"><text>今天没有待处理的安排</text><text>把时间留给彼此和宝宝</text></view>
+        </view>
+
+        <view class="reminder-strip"><view class="reminder-icon">!</view><view><text class="reminder-title">本周提醒</text><text class="reminder-copy">宝宝正在练习吞咽，规律产检和充足休息都很重要。</text></view></view>
       </block>
 
       <block v-else-if="activeTab === 'tasks'">
-        <view class="page-heading"><text class="heading">任务</text><text class="heading-note">一起准备，不让一个人扛着</text></view>
-        <view class="segmented"><text :class="{ selected: taskFilter === 'all' }" @tap="taskFilter = 'all'">全部</text><text :class="{ selected: taskFilter === 'system' }" @tap="taskFilter = 'system'">系统提醒</text><text :class="{ selected: taskFilter === 'couple' }" @tap="taskFilter = 'couple'">夫妻任务</text></view>
-        <view class="assign-card" @tap="assignTask"><text class="assign-plus">＋</text><view><text class="assign-title">指派一个任务</text><text class="assign-desc">把想让对方做的事说清楚</text></view><text class="arrow">→</text></view>
+        <view class="page-heading"><text class="heading">任务</text><text class="heading-note">把要做的事，分给两个人</text></view>
+        <view class="filter-row dark-filter"><text :class="{ selected: taskFilter === 'all' }" @tap="taskFilter = 'all'">全部</text><text :class="{ selected: taskFilter === 'system' }" @tap="taskFilter = 'system'">系统提醒</text><text :class="{ selected: taskFilter === 'couple' }" @tap="taskFilter = 'couple'">夫妻任务</text></view>
+        <view class="assign-card" @tap="assignTask"><view class="assign-icon">＋</view><view><text class="assign-title">指派一个任务</text><text class="assign-desc">把想让对方做的事说清楚</text></view><text class="assign-arrow">→</text></view>
         <view v-for="task in filteredTasks" :key="task.id" class="task-card" :class="task.type"><view class="task-card-top"><text class="tag">{{ task.type === 'system' ? '系统提醒' : '夫妻任务' }}</text><text class="task-due">{{ task.due }}</text></view><view class="task-card-main"><text class="check large" :class="{ checked: task.done }" @tap.stop="toggleTask(task)">{{ task.done ? '✓' : '' }}</text><view><text class="task-name big" :class="{ strike: task.done }">{{ task.name }}</text><text class="task-owner">{{ task.owner }}</text></view></view></view>
       </block>
 
       <block v-else-if="activeTab === 'items'">
-        <view class="page-heading"><text class="heading">物品清单</text><text class="heading-note">把准备工作变成共同的进度条</text></view>
-        <view class="item-summary"><view><text class="summary-number">18</text><text> 件已准备</text></view><view class="summary-progress"><view class="summary-bar"></view></view><text class="summary-percent">64%</text></view>
+        <view class="page-heading"><text class="heading">物品清单</text><text class="heading-note">一起准备，少一点慌张</text></view>
+        <view class="item-summary"><view><text class="summary-number">18</text><text class="summary-label"> 件已准备</text></view><view class="summary-progress"><view class="summary-bar"></view></view><text class="summary-percent">64%</text></view>
         <view class="category-scroll"><text v-for="category in categories" :key="category" :class="{ active: itemCategory === category }" @tap="itemCategory = category">{{ category }}</text></view>
         <view v-for="item in visibleItems" :key="item.name" class="item-card"><view class="item-illustration">{{ item.symbol }}</view><view class="item-info"><text class="item-name">{{ item.name }}</text><text class="item-meta">{{ item.detail }} · {{ item.quantity }}{{ item.unit }}</text><view class="item-status" :class="item.statusClass">{{ item.status }}</view></view><text class="item-more">···</text></view>
-        <view class="add-item" @tap="addItem"><text>＋</text><text>添加一件物品</text></view>
+        <view class="add-item" @tap="addItem"><text class="add-item-icon">＋</text><text>添加一件物品</text></view>
       </block>
 
       <block v-else>
         <view class="page-heading"><text class="heading">我的</text><text class="heading-note">我们一起迎接新成员</text></view>
-        <view class="profile-card doodle-border"><view class="avatar">林</view><view><text class="profile-name">林女士</text><text class="profile-role">准妈妈 · 孕 22 周</text></view><text class="arrow">→</text></view>
-        <view class="pair-card"><view class="pair-avatars"><text class="pair-avatar mom">林</text><text class="pair-plus">＋</text><text class="pair-avatar dad">周</text></view><view><text class="pair-title">周先生已绑定</text><text class="pair-desc">共同查看任务和物品清单</text></view><text class="bound">已绑定</text></view>
-        <view class="settings-list"><view v-for="setting in settings" :key="setting" class="setting-row" @tap="showPairTip"><text>{{ setting }}</text><text class="arrow">→</text></view></view>
+        <view class="profile-card"><view class="avatar">林</view><view class="profile-copy"><text class="profile-name">林女士</text><text class="profile-role">准妈妈 · 孕 22 周</text></view><text class="profile-arrow">→</text></view>
+        <view class="pair-card"><view class="pair-avatars"><text class="pair-avatar mom">林</text><text class="pair-plus">＋</text><text class="pair-avatar dad">周</text></view><view class="pair-copy"><text class="pair-title">周先生已绑定</text><text class="pair-desc">共同查看任务和物品清单</text></view><text class="bound">已绑定</text></view>
+        <view class="settings-list"><view v-for="setting in settings" :key="setting" class="setting-row" @tap="showPairTip"><text>{{ setting }}</text><text class="setting-arrow">→</text></view></view>
       </block>
     </scroll-view>
 
-    <view class="bottom-nav"><view v-for="tab in tabs" :key="tab.key" class="nav-item" :class="{ active: activeTab === tab.key }" @tap="activeTab = tab.key"><text class="nav-icon">{{ tab.icon }}</text><text>{{ tab.label }}</text></view></view>
+    <view class="floating-action" @tap="primaryAction"><text>＋</text></view>
+    <view class="bottom-nav">
+      <view v-for="tab in tabs" :key="tab.key" class="nav-item" :class="{ active: activeTab === tab.key }" @tap="activeTab = tab.key">
+        <view class="nav-icon-wrap"><text class="nav-icon">{{ tab.icon }}</text></view>
+        <text class="nav-label">{{ tab.label }}</text>
+      </view>
+    </view>
   </view>
 </template>
 
 <script>
 export default {
-  data() { return { activeTab: 'calendar', taskFilter: 'all', itemCategory: '待产包', tabs: [{ key: 'calendar', label: '日历', icon: '◷' }, { key: 'tasks', label: '任务', icon: '✓' }, { key: 'items', label: '清单', icon: '▤' }, { key: 'mine', label: '我的', icon: '○' }], categories: ['待产包', '衣物', '喂养', '护理'], settings: ['通知与提醒', '孕周设置', '关于不叉手'], settingsData: [{ name: '涂抹妊娠油', owner: '林女士', due: '今天', type: 'system', done: false, id: 1 }, { name: '确认待产包清单', owner: '周先生', due: '周日', type: 'couple', done: false, id: 2 }, { name: '预约下次产检', owner: '林女士', due: '已完成', type: 'system', done: true, id: 3 }], itemsData: [{ name: '连体衣', detail: '59码 · 纯棉', quantity: 3, unit: '件', category: '衣物', symbol: '衣', status: '准备中', statusClass: 'preparing' }, { name: '奶瓶', detail: '宽口径 · 240ml', quantity: 2, unit: '个', category: '喂养', symbol: '瓶', status: '未准备', statusClass: 'waiting' }, { name: '产褥垫', detail: 'XL · 加长款', quantity: 1, unit: '包', category: '待产包', symbol: '垫', status: '准备完成', statusClass: 'ready' }] } },
-  computed: { todayTasks() { return this.settingsData.slice(0, 2) }, filteredTasks() { return this.taskFilter === 'all' ? this.settingsData : this.settingsData.filter(item => item.type === this.taskFilter) }, visibleItems() { return this.itemsData.filter(item => item.category === this.itemCategory || this.itemCategory === '待产包' && item.category === '待产包') } },
-  methods: { toggleTask(task) { task.done = !task.done }, assignTask() { uni.showModal({ title: '指派夫妻任务', editable: true, placeholderText: '例如：周末一起整理待产包', success: result => { if (result.confirm && result.content) { this.settingsData.unshift({ name: result.content, owner: '周先生', due: '待确认', type: 'couple', done: false, id: Date.now() }); uni.showToast({ title: '任务已发出', icon: 'none' }) } } }) }, addItem() { uni.showToast({ title: '物品添加入口已准备好', icon: 'none' }) }, showPairTip() { uni.showToast({ title: '这是你们共同的空间', icon: 'none' }) } }
+  data() {
+    return {
+      activeTab: 'calendar',
+      homeFilter: 'all',
+      taskFilter: 'all',
+      itemCategory: '待产包',
+      profileName: '林女士',
+      homeFilters: [{ key: 'all', label: '全部' }, { key: 'pending', label: '待完成' }, { key: 'done', label: '已完成' }],
+      tabs: [{ key: 'calendar', label: '日历', icon: '⌂' }, { key: 'tasks', label: '任务', icon: '✓' }, { key: 'items', label: '清单', icon: '▤' }, { key: 'mine', label: '我的', icon: '●' }],
+      categories: ['待产包', '衣物', '喂养', '护理'],
+      settings: ['通知与提醒', '孕周设置', '关于不叉手'],
+      settingsData: [{ name: '涂抹妊娠油', owner: '林女士', due: '今天', type: 'system', done: false, id: 1 }, { name: '确认待产包清单', owner: '周先生', due: '周日', type: 'couple', done: false, id: 2 }, { name: '预约下次产检', owner: '林女士', due: '已完成', type: 'system', done: true, id: 3 }],
+      itemsData: [{ name: '连体衣', detail: '59码 · 纯棉', quantity: 3, unit: '件', category: '衣物', symbol: '衣', status: '准备中', statusClass: 'preparing' }, { name: '奶瓶', detail: '宽口径 · 240ml', quantity: 2, unit: '个', category: '喂养', symbol: '瓶', status: '未准备', statusClass: 'waiting' }, { name: '产褥垫', detail: 'XL · 加长款', quantity: 1, unit: '包', category: '待产包', symbol: '垫', status: '准备完成', statusClass: 'ready' }]
+    }
+  },
+  computed: {
+    currentTabLabel() { return this.tabs.find(tab => tab.key === this.activeTab).label },
+    pendingTaskCount() { return this.settingsData.filter(task => !task.done).length },
+    todayPendingCount() { return this.settingsData.filter(task => !task.done && task.due === '今天').length },
+    todayTasks() { return this.settingsData.slice(0, 2) },
+    agendaTasks() {
+      if (this.homeFilter === 'pending') return this.todayTasks.filter(task => !task.done)
+      if (this.homeFilter === 'done') return this.todayTasks.filter(task => task.done)
+      return this.todayTasks
+    },
+    filteredTasks() { return this.taskFilter === 'all' ? this.settingsData : this.settingsData.filter(item => item.type === this.taskFilter) },
+    visibleItems() { return this.itemsData.filter(item => item.category === this.itemCategory || (this.itemCategory === '待产包' && item.category === '待产包')) }
+  },
+  methods: {
+    toggleTask(task) { task.done = !task.done },
+    primaryAction() {
+      if (this.activeTab === 'tasks') return this.assignTask()
+      if (this.activeTab === 'items') return this.addItem()
+      uni.showToast({ title: '每天完成一件小事就很好', icon: 'none' })
+    },
+    assignTask() {
+      uni.showModal({ title: '指派夫妻任务', editable: true, placeholderText: '例如：周末一起整理待产包', success: result => { if (result.confirm && result.content) { this.settingsData.unshift({ name: result.content, owner: '周先生', due: '待确认', type: 'couple', done: false, id: Date.now() }); uni.showToast({ title: '任务已发出', icon: 'none' }) } } })
+    },
+    addItem() { uni.showToast({ title: '物品添加入口已准备好', icon: 'none' }) },
+    showPairTip() { uni.showToast({ title: '这是你们共同的空间', icon: 'none' }) }
+  }
 }
 </script>
 
 <style scoped>
-.page { min-height: 100vh; background: #f6f1e6; color: #273b33; padding-bottom: 92px; }
-.chalk-header { padding: 24px 20px 0; background: #274d42; color: #fffdf3; }
-.brand-row, .week-top, .week-foot, .section-title, .task-card-top, .item-summary, .profile-card, .pair-card, .setting-row { display: flex; align-items: center; justify-content: space-between; }
-.mini-label, .card-kicker { display: block; font-size: 10px; letter-spacing: 2px; opacity: .7; }
-.brand { display: block; font-size: 28px; font-weight: 700; letter-spacing: 5px; margin-top: 4px; }
-.couple-chip { display: flex; gap: 7px; align-items: center; border: 1px solid #9cc3aa; border-radius: 20px; padding: 7px 11px; font-size: 12px; }
-.dot { width: 7px; height: 7px; border-radius: 50%; background: #f6cf75; }
-.chalk-line { height: 10px; margin-top: 15px; border-top: 1px dashed #a9cbbb; opacity: .75; }
-.content { height: calc(100vh - 151px); padding: 20px; }
-.hello-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 17px; }.greeting { display: block; font-size: 23px; font-weight: 700; }.sub-greeting { display: block; margin-top: 4px; color: #788b80; font-size: 12px; }.sun { color: #dfa94e; font-size: 36px; }
-.week-card { background: #e5bd65; padding: 18px; color: #244136; }.doodle-border { border: 2px dashed #517b69; border-radius: 8px; }.week-date { font-size: 12px; opacity: .7; }.week-number { display: flex; align-items: baseline; margin: 8px 0 11px; }.week-number text:first-child { font-size: 58px; font-weight: 700; line-height: 1; }.week-unit { font-size: 17px; margin-left: 5px; }.week-days { font-size: 14px; margin-left: 11px; }.progress-track, .summary-progress { height: 6px; background: rgba(255,255,255,.45); border-radius: 5px; overflow: hidden; }.progress-value { width: 52%; height: 100%; background: #426e59; }.week-foot { font-size: 11px; margin-top: 9px; }
-.section-title { margin: 24px 0 10px; font-size: 16px; font-weight: 700; }.arrow, .see-all { color: #5f8c70; font-size: 12px; }.baby-card, .notice-card, .assign-card, .task-card, .item-card, .pair-card { display: flex; align-items: center; gap: 13px; background: #fffdf7; border: 1px solid #e4ddcf; border-radius: 7px; padding: 15px; }.baby-sketch { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 50%; background: #d3e5ca; color: #4d8365; font-size: 26px; }.baby-title, .notice-title, .assign-title, .item-name, .pair-title { display: block; font-weight: 700; font-size: 14px; }.baby-desc, .notice-body, .assign-desc, .pair-desc { display: block; margin-top: 5px; color: #7c8c82; font-size: 11px; line-height: 1.55; }.notice-card { margin-top: 10px; align-items: flex-start; background: #f9e9c8; border-color: #eed9ac; }.notice-mark { width: 23px; height: 23px; flex: none; display: grid; place-items: center; border: 1px solid #c38a3d; border-radius: 50%; color: #a66f27; font-weight: 700; }.task-row { display: flex; align-items: center; gap: 11px; padding: 12px 1px; border-bottom: 1px solid #e1d9ca; }.check { width: 22px; height: 22px; display: grid; place-items: center; flex: none; border: 1.5px solid #73917c; border-radius: 50%; color: #fff; font-size: 14px; }.task-row.done .check, .check.checked { background: #6b987a; }.task-name { display: block; font-size: 13px; }.task-owner, .task-time { display: block; margin-top: 3px; color: #89968d; font-size: 10px; }.task-time { margin-left: auto; }.page-heading { margin: 4px 0 18px; }.heading { display: block; font-size: 27px; font-weight: 700; }.heading-note { display: block; margin-top: 4px; color: #7d8d82; font-size: 12px; }.segmented { display: flex; gap: 5px; margin-bottom: 15px; }.segmented text { padding: 7px 13px; border-radius: 15px; color: #76877c; font-size: 12px; }.segmented text.selected { background: #d2e4cf; color: #356148; font-weight: 700; }.assign-card { margin-bottom: 13px; border-style: dashed; }.assign-plus { color: #5f916f; font-size: 25px; }.task-card { display: block; margin-bottom: 10px; }.task-card.system { border-left: 4px solid #e6bd62; }.task-card.couple { border-left: 4px solid #81a9a0; }.tag, .task-due { color: #829188; font-size: 10px; }.task-card-main { display: flex; align-items: center; gap: 11px; margin-top: 9px; }.large { width: 25px; height: 25px; }.big { font-size: 14px; }.strike { text-decoration: line-through; color: #9ca79f; }.item-summary { padding: 15px 0; }.summary-number { font-size: 25px; font-weight: 700; }.summary-progress { width: 45%; background: #dfdacd; }.summary-bar { width: 64%; height: 100%; background: #719b7c; }.summary-percent { color: #6d8073; font-size: 12px; }.category-scroll { display: flex; gap: 19px; margin: 0 0 13px; white-space: nowrap; }.category-scroll text { padding-bottom: 7px; color: #89958b; font-size: 13px; }.category-scroll text.active { border-bottom: 2px solid #4d8565; color: #356148; font-weight: 700; }.item-card { margin-bottom: 10px; }.item-illustration { width: 50px; height: 50px; display: grid; place-items: center; background: #e3ecd9; color: #547d60; font-size: 13px; font-weight: 700; }.item-info { flex: 1; }.item-meta { display: block; margin-top: 4px; color: #86938a; font-size: 11px; }.item-status { display: inline-block; margin-top: 7px; padding: 3px 7px; border-radius: 3px; font-size: 10px; }.preparing { background: #f6e0ad; color: #9a712a; }.waiting { background: #eeeae0; color: #899188; }.ready { background: #d6e8d5; color: #4f8562; }.item-more { color: #829289; letter-spacing: 2px; }.add-item { display: flex; justify-content: center; gap: 7px; padding: 15px; color: #578468; border: 1px dashed #9db7a3; border-radius: 7px; font-size: 13px; }.profile-card { background: #fffdf7; padding: 18px; }.avatar, .pair-avatar { display: grid; place-items: center; border-radius: 50%; }.avatar { width: 48px; height: 48px; margin-right: 12px; background: #e5bd65; font-size: 19px; font-weight: 700; }.profile-card > view:nth-child(2) { flex: 1; }.profile-name { display: block; font-size: 16px; font-weight: 700; }.profile-role { display: block; margin-top: 3px; color: #85938a; font-size: 11px; }.pair-card { margin-top: 12px; }.pair-avatars { display: flex; align-items: center; margin-right: 2px; }.pair-avatar { width: 33px; height: 33px; border: 2px solid #fffdf7; color: #fff; font-size: 12px; }.mom { background: #d18b83; }.dad { background: #6e9b85; margin-left: -8px; }.pair-plus { margin: 0 3px; color: #aab3a8; }.pair-card > view:nth-child(2) { flex: 1; }.bound { padding: 4px 7px; border-radius: 3px; background: #d6e8d5; color: #4f8562; font-size: 10px; }.settings-list { margin-top: 18px; background: #fffdf7; border-radius: 7px; }.setting-row { padding: 16px; border-bottom: 1px solid #eee8dc; font-size: 13px; }.setting-row:last-child { border-bottom: 0; }.bottom-nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; display: flex; justify-content: space-around; padding: 9px 10px 14px; background: #fffdf8; border-top: 1px solid #e5ded0; }.nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 54px; color: #9aa49c; font-size: 10px; }.nav-item.active { color: #376449; font-weight: 700; }.nav-icon { font-size: 21px; line-height: 20px; }
+page { background: #f8f7ef; }
+.page { min-height: 100vh; box-sizing: border-box; padding-bottom: 112px; background: #f8f7ef; color: #0b0c0b; font-family: "Arial Rounded MT Bold", "PingFang SC", "Microsoft YaHei", sans-serif; }
+.safe-area { height: env(safe-area-inset-top); }
+.topbar { display: flex; justify-content: space-between; align-items: center; padding: 23px 22px 10px; }
+.brand-block { min-width: 0; }
+.eyebrow { display: block; color: #8c8e84; font-size: 10px; font-weight: 700; letter-spacing: 2px; }
+.page-title { display: block; max-width: 470rpx; margin-top: 8px; color: #0b0c0b; font-size: 30px; font-weight: 900; line-height: 1.15; }
+.account-chip { display: flex; align-items: center; gap: 7px; max-width: 185px; padding: 11px 13px; border-radius: 24px; background: #efefe9; color: #151616; font-size: 13px; font-weight: 700; white-space: nowrap; }
+.account-dot { width: 10px; height: 10px; flex: none; border-radius: 50%; background: #0cc98a; }
+.chip-arrow { color: #7e817c; font-size: 17px; margin-left: 2px; }
+.content { height: calc(100vh - 120px); box-sizing: border-box; padding: 9px 22px 26px; }
+.date-line { display: flex; justify-content: space-between; align-items: center; color: #8c8e84; font-size: 12px; }
+.sun-mark { color: #b7b8a5; font-size: 24px; }
+.metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 18px; }
+.metric-card { min-height: 144px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; padding: 18px 16px 15px; border-radius: 22px; }
+.yellow-card { background: #eaff3f; }
+.metric-kicker { color: #555c28; font-size: 11px; font-weight: 700; letter-spacing: .5px; }
+.metric-value { display: flex; align-items: baseline; color: #080908; white-space: nowrap; }
+.metric-value > text:first-child { font-size: 43px; font-weight: 900; line-height: 1; }
+.metric-unit { margin-left: 5px; font-size: 17px; font-weight: 800; }
+.metric-extra { margin-left: 7px; color: #44491f; font-size: 12px; font-weight: 700; }
+.metric-foot { display: flex; justify-content: space-between; align-items: center; color: #69712b; font-size: 11px; }
+.eye { font-size: 14px; color: #707836; }
+.section-head { display: flex; justify-content: space-between; align-items: center; margin-top: 27px; color: #111211; font-size: 18px; font-weight: 900; }
+.section-link { color: #7e817a; font-size: 11px; font-weight: 700; }
+.filter-row { display: flex; align-items: center; gap: 8px; overflow-x: auto; white-space: nowrap; }
+.home-filter { margin: 14px 0 11px; }
+.filter-row text { padding: 10px 15px; border-radius: 22px; background: #eeeee9; color: #9a9c96; font-size: 13px; font-weight: 700; }
+.filter-row text.selected { background: #050606; color: #eaff3f; }
+.agenda-list { display: flex; flex-direction: column; gap: 10px; }
+.agenda-card { display: flex; align-items: center; min-height: 72px; box-sizing: border-box; gap: 12px; padding: 13px 14px; border-radius: 16px; background: #fff; box-shadow: 0 7px 18px rgba(40, 40, 25, .06); }
+.agenda-card.completed { opacity: .56; }
+.agenda-icon { width: 43px; height: 43px; flex: none; display: grid; place-items: center; border-radius: 50%; background: #f2f2ee; color: #161817; font-size: 21px; font-weight: 700; }
+.agenda-icon.system { background: #f2f4bc; color: #6c711e; }.agenda-icon.couple { background: #d8f3e7; color: #16876b; }
+.agenda-copy { min-width: 0; flex: 1; }.agenda-name { display: block; overflow: hidden; color: #101110; font-size: 15px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }.agenda-meta { display: block; margin-top: 5px; color: #a1a39e; font-size: 11px; }.agenda-state { padding: 6px 8px; border-radius: 8px; background: #f1f1ed; color: #858781; font-size: 10px; font-weight: 700; }.agenda-card:not(.completed) .agenda-state { background: #fff1a4; color: #575b16; }
+.empty-state { padding: 24px 15px; text-align: center; border-radius: 15px; background: #fff; color: #8c8e84; font-size: 13px; line-height: 1.8; }.empty-state text:last-child { display: block; color: #b4b5ae; font-size: 11px; }
+.reminder-strip { display: flex; align-items: flex-start; gap: 10px; margin-top: 19px; padding: 13px 14px; border-radius: 14px; background: #fff8ce; }.reminder-icon { width: 22px; height: 22px; flex: none; display: grid; place-items: center; border-radius: 50%; background: #111212; color: #eaff3f; font-size: 13px; font-weight: 900; }.reminder-title { display: block; color: #1c1d13; font-size: 12px; font-weight: 900; }.reminder-copy { display: block; margin-top: 4px; color: #77764d; font-size: 11px; line-height: 1.5; }
+.page-heading { margin: 9px 0 18px; }.heading { display: block; font-size: 32px; font-weight: 900; }.heading-note { display: block; margin-top: 6px; color: #8c8e84; font-size: 12px; }
+.dark-filter { margin-bottom: 15px; }.assign-card { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; padding: 15px; border-radius: 15px; border: 1px dashed #b2b4ac; background: transparent; }.assign-icon { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%; background: #111212; color: #eaff3f; font-size: 23px; }.assign-title { display: block; font-size: 14px; font-weight: 900; }.assign-desc { display: block; margin-top: 4px; color: #9a9c96; font-size: 11px; }.assign-arrow { margin-left: auto; color: #8c8e84; font-size: 19px; }
+.task-card { display: block; margin-bottom: 10px; padding: 15px; border-radius: 15px; background: #fff; box-shadow: 0 7px 18px rgba(40, 40, 25, .05); }.task-card.system { border-top: 4px solid #eaff3f; }.task-card.couple { border-top: 4px solid #bdebdc; }.task-card-top { display: flex; justify-content: space-between; color: #959791; font-size: 10px; }.task-card-main { display: flex; align-items: center; gap: 11px; margin-top: 11px; }.check { width: 24px; height: 24px; flex: none; display: grid; place-items: center; border: 1.5px solid #9ca099; border-radius: 50%; color: #fff; font-size: 14px; }.check.checked { border-color: #111212; background: #111212; }.task-name { display: block; color: #161716; font-size: 13px; }.big { font-size: 15px; font-weight: 800; }.task-owner { display: block; margin-top: 4px; color: #a1a39e; font-size: 10px; }.strike { color: #a7a9a3; text-decoration: line-through; }
+.item-summary { display: flex; align-items: center; justify-content: space-between; padding: 4px 0 19px; }.summary-number { color: #111212; font-size: 30px; font-weight: 900; }.summary-label { color: #8c8e84; font-size: 12px; }.summary-progress { width: 39%; height: 7px; overflow: hidden; border-radius: 8px; background: #e6e6de; }.summary-bar { width: 64%; height: 100%; background: #111212; }.summary-percent { color: #777a73; font-size: 12px; font-weight: 700; }.category-scroll { display: flex; gap: 17px; margin-bottom: 13px; white-space: nowrap; }.category-scroll text { padding-bottom: 7px; color: #a0a29b; font-size: 12px; font-weight: 700; }.category-scroll text.active { border-bottom: 2px solid #111212; color: #111212; }
+.item-card { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; padding: 13px; border-radius: 15px; background: #fff; box-shadow: 0 7px 18px rgba(40, 40, 25, .05); }.item-illustration { width: 48px; height: 48px; display: grid; place-items: center; flex: none; border-radius: 50%; background: #f1f1ed; color: #222322; font-size: 12px; font-weight: 900; }.item-info { flex: 1; min-width: 0; }.item-name { display: block; color: #151615; font-size: 15px; font-weight: 900; }.item-meta { display: block; margin-top: 4px; color: #a1a39e; font-size: 11px; }.item-status { display: inline-block; margin-top: 7px; padding: 4px 8px; border-radius: 7px; font-size: 10px; font-weight: 700; }.preparing { background: #fff1a4; color: #6e681e; }.waiting { background: #efefeb; color: #858781; }.ready { background: #d7f5cf; color: #39803b; }.item-more { color: #969891; letter-spacing: 2px; }.add-item { display: flex; align-items: center; justify-content: center; gap: 7px; padding: 15px; border: 1px dashed #afb1a9; border-radius: 15px; color: #555851; font-size: 13px; font-weight: 700; }.add-item-icon { color: #111212; font-size: 22px; }
+.profile-card { display: flex; align-items: center; padding: 16px; border-radius: 16px; background: #fff; box-shadow: 0 7px 18px rgba(40, 40, 25, .05); }.avatar, .pair-avatar { display: grid; place-items: center; border-radius: 50%; }.avatar { width: 50px; height: 50px; margin-right: 12px; background: #eaff3f; color: #111212; font-size: 20px; font-weight: 900; }.profile-copy { flex: 1; }.profile-name { display: block; font-size: 17px; font-weight: 900; }.profile-role { display: block; margin-top: 4px; color: #94968f; font-size: 11px; }.profile-arrow, .setting-arrow { color: #858781; font-size: 18px; }.pair-card { display: flex; align-items: center; gap: 12px; margin-top: 11px; padding: 15px; border-radius: 16px; background: #111212; color: #fff; }.pair-avatars { display: flex; align-items: center; }.pair-avatar { width: 34px; height: 34px; border: 2px solid #111212; color: #111212; font-size: 12px; font-weight: 900; }.mom { background: #ffc8b8; }.dad { margin-left: -8px; background: #bdebdc; }.pair-plus { margin: 0 3px; color: #93958e; }.pair-copy { flex: 1; }.pair-title { color: #fff; font-size: 13px; }.pair-desc { display: block; margin-top: 4px; color: #a5a7a1; font-size: 10px; }.bound { padding: 5px 8px; border-radius: 7px; background: #eaff3f; color: #131414; font-size: 10px; font-weight: 900; }.settings-list { margin-top: 17px; overflow: hidden; border-radius: 15px; background: #fff; }.setting-row { display: flex; justify-content: space-between; align-items: center; padding: 17px 16px; border-bottom: 1px solid #f0efe9; color: #1d1e1d; font-size: 13px; }.setting-row:last-child { border-bottom: 0; }
+.floating-action { position: fixed; right: 24px; bottom: calc(92px + env(safe-area-inset-bottom)); z-index: 12; width: 64px; height: 64px; display: grid; place-items: center; border-radius: 50%; background: #111212; color: #fff; box-shadow: 0 9px 18px rgba(20, 20, 18, .2); }.floating-action text { margin-top: -4px; font-size: 45px; font-weight: 300; line-height: 1; }
+.bottom-nav { position: fixed; left: 22px; right: 22px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 10; display: flex; justify-content: space-around; align-items: center; height: 73px; padding: 0 8px; border-radius: 38px; background: #050606; }.nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-width: 55px; color: #fff; }.nav-icon-wrap { width: 47px; height: 47px; display: grid; place-items: center; border-radius: 50%; }.nav-item.active .nav-icon-wrap { background: #eaff3f; color: #080908; }.nav-icon { font-size: 25px; font-weight: 900; line-height: 1; }.nav-label { color: #a8aaa5; font-size: 9px; }.nav-item.active .nav-label { color: #eaff3f; font-weight: 800; }
 </style>
