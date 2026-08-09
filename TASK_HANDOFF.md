@@ -30,7 +30,7 @@
 
 默认接口地址是 `http://127.0.0.1:8080`。真机不能用电脑的 `127.0.0.1`，应将存储项 `nsb_api_base_url` 或构建变量 `VUE_APP_API_BASE_URL` 设置为电脑局域网地址，例如 `http://192.168.1.10:8080`，并保证手机和电脑在同一网络。
 
-后端数据库明确采用无外键策略，跨表 ID 只作逻辑关联；详情和迁移说明见后端 `TASK_HANDOFF.md` 与 `V2__remove_foreign_keys.sql`。
+后端数据库明确采用无外键策略，跨表 ID 只作逻辑关联；当前只保留最终 `V1__init.sql`，不再保留过渡迁移。宝宝资料位于 `baby_info`，宝宝与家庭的多对一关系位于 `baby_family_relation`；新接口应优先读取响应中的 `babies` 列表。完整结构和本地数据库重建说明见后端 `TASK_HANDOFF.md` 与 `README.md`。
 
 HBuilderX 曾把 `pages/index/index.vue` 误判为 GBK。根目录 `.editorconfig` 固定 `utf-8-bom`，中文源码保留首行编码标记；不要删除这些标记。产品正式名称只能使用“不叉手”。
 
