@@ -55,20 +55,20 @@ export async function bootstrapAnonymous() {
 }
 
 /**
- * 调用 `GET /api/v1/users/me` 获取当前匿名账号的资料补充状态和用户摘要。
+ * 调用 `GET /api/v1/users/me` 获取当前匿名账号、家庭成员和宝宝资料。
  *
- * @returns {Promise<Object>} 当前用户摘要。
+ * @returns {Promise<Object>} 当前用户公开资料；完成引导后包含 role 和 family 聚合数据。
  */
 export async function getCurrentUser() {
   return get('/api/v1/users/me')
 }
 
 /**
- * 建立匿名会话并读取当前用户；遇到 401 时自动重建一次会话。
+ * 建立匿名会话并读取当前用户、家庭和宝宝资料；遇到 401 时自动重建一次会话。
  *
  * 401 重试只执行一次，避免凭证异常时形成无限请求循环。
  *
- * @returns {Promise<Object>} 当前用户摘要。
+ * @returns {Promise<Object>} 当前用户及其家庭空间公开资料。
  */
 export async function ensureSessionAndUser() {
   await bootstrapAnonymous()
