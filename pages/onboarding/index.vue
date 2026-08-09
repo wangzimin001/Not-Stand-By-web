@@ -15,7 +15,7 @@
 
     <!-- QuestionStage 根据 step 切换问题，并统一处理渐隐、渐显动画。 -->
     <view v-else class="content">
-      <QuestionStage :question-key="step" :eyebrow="eyebrow" :title="questionTitle" :subtitle="questionSubtitle">
+      <QuestionStage ref="questionStage" :eyebrow="eyebrow" :title="questionTitle" :subtitle="questionSubtitle">
         <!-- 网络或后端校验错误保留在当前问题内，避免丢失已填写草稿。 -->
         <view v-if="errorMessage" class="error-box">
           <text>{{ errorMessage }}</text>
@@ -53,7 +53,7 @@
 
         <view v-else-if="step === 'join-method'" class="choices">
           <ChoiceButton label="扫描二维码" hint="使用伴侣分享的邀请二维码" @tap="scanInvite" />
-          <ChoiceButton label="输入家庭码" hint="家庭码通常是 6～12 位字母或数字" @tap="step = 'join-code'" />
+          <ChoiceButton label="输入家庭码" hint="家庭码通常是 6～12 位字母或数字" @tap="nextStep('join-code')" />
         </view>
 
         <view v-else-if="step === 'join-code'" class="form-block">
@@ -221,15 +221,24 @@ export default {
     },
     /** @param {Object} event uni picker 的 change 事件。 @returns {void} */
     onDueDateChange(event) { this.draft.expectedDate = event.detail.value; this.persist() },
-    /** @param {string} step 目标问题键。 @returns {void} */
-    nextStep(step) { this.errorMessage = ''; this.step = step; this.persist() },
+    /**
+     * 通过 QuestionStage 的两阶段动画切换问题，确保旧内容完全离场后才更新步骤。
+     * @param {string} step 目标问题键。
+     * @returns {void}
+     */
+    nextStep(step) {
+      const applyStep = () => { this.errorMessage = ''; this.step = step; this.persist() }
+      const stage = this.$refs.questionStage
+      if (!stage || typeof stage.swapQuestion !== 'function') { applyStep(); return }
+      stage.swapQuestion(applyStep)
+    },
     /**
      * 根据当前分支回到逻辑上的上一题，而不是依赖浏览器历史。
      * @returns {void}
      */
     goBack() {
       const previous = { nickname: 'role', 'family-action': 'nickname', 'due-date': 'family-action', 'baby-nickname': 'due-date', 'join-method': 'family-action', 'join-code': 'join-method', 'join-preview': 'join-code' }[this.step]
-      if (previous) this.step = previous
+      if (previous) this.nextStep(previous)
     },
     /**
      * 统一处理主按钮：先校验当前问题，再决定换题、预览家庭或提交资料。
@@ -294,40 +303,40 @@ export default {
 </script>
 
 <style scoped>
-/* 首次引导独立使用深色黑板背景，与登录后的明亮看板形成阶段区分。 */
-page { background: #17251f; }
-.onboarding-page { width: 100%; min-height: 100vh; box-sizing: border-box; overflow-x: hidden; padding: calc(28px + env(safe-area-inset-top)) 24px calc(18px + env(safe-area-inset-bottom)); background: #17251f; color: #fffdf3; display: flex; flex-direction: column; }
+/* 首次引导沿用主看板的暖米白、黑色与荧光黄，保持轻快统一的视觉语气。 */
+page { background: #f8f7ef; }
+.onboarding-page { width: 100%; min-height: 100vh; box-sizing: border-box; overflow-x: hidden; padding: calc(28px + env(safe-area-inset-top)) 24px calc(18px + env(safe-area-inset-bottom)); background: radial-gradient(circle at 88% 8%, rgba(234, 255, 63, .24), transparent 31%), #f8f7ef; color: #111212; display: flex; flex-direction: column; }
 .topbar, .content, .state-panel, .footer-note { width: 100%; max-width: 480px; margin-left: auto; margin-right: auto; box-sizing: border-box; }
 .topbar { display: flex; justify-content: space-between; align-items: flex-start; flex: none; }
-.brand-mark { display: flex; flex-direction: column; color: #e5bd65; font-size: 18px; font-weight: 700; letter-spacing: 2px; }
-.brand-sub { color: #b8d0bf; font-size: 9px; letter-spacing: 2px; margin-top: 5px; }
-.step-count { color: #b8d0bf; font-size: 12px; padding-top: 5px; }
+.brand-mark { display: flex; flex-direction: column; color: #111212; font-size: 18px; font-weight: 800; letter-spacing: 2px; }
+.brand-sub { color: #8b8e86; font-size: 9px; letter-spacing: 2px; margin-top: 5px; }
+.step-count { color: #777b74; font-size: 12px; padding-top: 5px; }
 .content { flex: 1; min-width: 0; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 50px 0 24px; }
 .state-panel { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 0 10px; }
-.state-title { color: #fffdf3; font-size: 24px; font-weight: 700; }
-.state-copy { color: #b8d0bf; font-size: 14px; line-height: 1.7; margin-top: 12px; }
+.state-title { color: #111212; font-size: 24px; font-weight: 800; }
+.state-copy { color: #777b74; font-size: 14px; line-height: 1.7; margin-top: 12px; }
 .choices, .form-block { width: 100%; }
-.chalk-input { width: 100%; height: 55px; box-sizing: border-box; border-bottom: 1px solid #b8d0bf; color: #fffdf3; font-size: 20px; padding: 0 2px; }
-.chalk-input::placeholder { color: #769081; }
+.chalk-input { width: 100%; height: 55px; box-sizing: border-box; border-bottom: 1px solid #aeb1aa; color: #111212; font-size: 20px; padding: 0 2px; }
+.chalk-input::placeholder { color: #a3a69f; }
 .code-input { text-transform: uppercase; letter-spacing: 3px; }
-.field-note { display: block; color: #8eaa99; font-size: 12px; line-height: 1.6; margin-top: 14px; }
-.date-picker { height: 61px; border: 1px solid rgba(184, 208, 191, .66); border-radius: 7px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; color: #fffdf3; font-size: 17px; }
-.date-arrow { color: #e5bd65; font-size: 21px; }
-.preview-box { width: 100%; border: 1px solid #e5bd65; border-radius: 7px; padding: 21px 18px; box-sizing: border-box; background: rgba(229, 189, 101, .1); }
-.preview-kicker { color: #e5bd65; font-size: 12px; letter-spacing: 2px; }
-.preview-title { display: block; color: #fffdf3; font-size: 22px; font-weight: 700; margin-top: 13px; }
-.preview-copy { display: block; color: #b8d0bf; font-size: 14px; line-height: 1.65; margin-top: 10px; }
-.preview-meta { display: flex; justify-content: space-between; color: #e5bd65; font-size: 12px; margin-top: 20px; }
+.field-note { display: block; color: #858980; font-size: 12px; line-height: 1.6; margin-top: 14px; }
+.date-picker { height: 61px; border: 1px solid #d4d6cf; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; background: #fff; color: #111212; font-size: 17px; }
+.date-arrow { color: #111212; font-size: 21px; }
+.preview-box { width: 100%; border: 1px solid #a9b238; border-radius: 12px; padding: 21px 18px; box-sizing: border-box; background: #f4ffbf; }
+.preview-kicker { color: #6c731c; font-size: 12px; letter-spacing: 2px; }
+.preview-title { display: block; color: #111212; font-size: 22px; font-weight: 800; margin-top: 13px; }
+.preview-copy { display: block; color: #65695f; font-size: 14px; line-height: 1.65; margin-top: 10px; }
+.preview-meta { display: flex; justify-content: space-between; color: #596014; font-size: 12px; margin-top: 20px; }
 .actions { margin-top: 30px; display: flex; gap: 10px; }
 button { margin: 0; }
-.primary-button, .ghost-button { flex: 1; min-width: 0; height: 49px; line-height: 49px; padding: 0 8px; border-radius: 6px; font-size: 16px; white-space: nowrap; }
-.primary-button { color: #17251f; background: #e5bd65; }
+.primary-button, .ghost-button { flex: 1; min-width: 0; height: 49px; line-height: 49px; padding: 0 8px; border-radius: 10px; font-size: 16px; white-space: nowrap; }
+.primary-button { color: #111212; background: #eaff3f; }
 .primary-button[disabled] { opacity: .55; }
-.ghost-button { color: #b8d0bf; border: 1px solid rgba(184, 208, 191, .48); background: transparent; }
-.error-box { display: flex; align-items: center; justify-content: space-between; color: #f3a995; font-size: 12px; line-height: 1.5; padding: 10px 12px; border: 1px solid rgba(243, 169, 149, .52); border-radius: 6px; margin-bottom: 16px; overflow-wrap: anywhere; }
-.error-action { color: #e5bd65; margin-left: 12px; }
-.footer-note { text-align: center; color: #769081; font-size: 11px; }
-.footer-dot { padding: 0 7px; color: #e5bd65; }
+.ghost-button { color: #555951; border: 1px solid #c9cbc4; background: rgba(255, 255, 255, .72); }
+.error-box { display: flex; align-items: center; justify-content: space-between; color: #a34e39; font-size: 12px; line-height: 1.5; padding: 10px 12px; border: 1px solid #efad9c; border-radius: 10px; margin-bottom: 16px; background: #fff2ed; overflow-wrap: anywhere; }
+.error-action { color: #111212; margin-left: 12px; font-weight: 700; }
+.footer-note { text-align: center; color: #94978f; font-size: 11px; }
+.footer-dot { padding: 0 7px; color: #8d951f; }
 
 /* 窄屏手机减少水平留白，保证三个操作按钮和长标题仍有足够空间。 */
 @media screen and (max-width: 350px) {

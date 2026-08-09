@@ -29,14 +29,14 @@ export default {
 </script>
 
 <style scoped>
-.choice { width: 100%; min-width: 0; min-height: 68px; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; border: 1px solid rgba(184, 208, 191, .66); border-radius: 7px; padding: 13px 16px; margin-bottom: 12px; background: rgba(255, 253, 243, .05); transition: background .18s ease, border-color .18s ease, transform .18s ease; }
+.choice { width: 100%; min-width: 0; min-height: 68px; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; border: 1px solid #d4d6cf; border-radius: 12px; padding: 13px 16px; margin-bottom: 12px; background: rgba(255, 255, 255, .86); box-shadow: 0 8px 22px rgba(34, 36, 29, .045); transition: background .2s ease, border-color .2s ease, transform .2s ease; }
 .choice:active { transform: scale(.985); }
-.choice.selected { border-color: #e5bd65; background: rgba(229, 189, 101, .16); }
+.choice.selected { border-color: #111212; background: #f2ff9c; }
 .choice.compact { min-height: 56px; }
 .choice-copy { display: flex; flex-direction: column; min-width: 0; }
-.choice-label { color: #fffdf3; font-size: 17px; font-weight: 600; }
-.choice-hint { color: #b8d0bf; font-size: 12px; line-height: 1.45; margin-top: 4px; overflow-wrap: anywhere; }
-.choice-mark { color: #e5bd65; font-size: 21px; width: 24px; text-align: right; }
+.choice-label { color: #111212; font-size: 17px; font-weight: 700; }
+.choice-hint { color: #7d8179; font-size: 12px; line-height: 1.45; margin-top: 4px; overflow-wrap: anywhere; }
+.choice-mark { color: #111212; font-size: 21px; width: 24px; text-align: right; }
 
 @media screen and (max-width: 350px) {
   .choice { min-height: 62px; padding: 11px 13px; margin-bottom: 10px; }
