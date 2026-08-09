@@ -1,9 +1,9 @@
 <!-- 中文编码标记：本项目源文件统一使用 UTF-8。 -->
 <template>
   <view class="onboarding-page">
-    <!-- 总步骤进度始终固定在页面顶部。 -->
+    <!-- 欢迎页不计入资料问题；进入身份题后才显示 1 / 5 进度。 -->
     <view class="topbar">
-      <text class="step-count" v-if="!loading">{{ stepLabel }}</text>
+      <text class="step-count" v-if="!loading && step !== 'welcome'">{{ stepLabel }}</text>
     </view>
 
     <!-- 匿名会话和用户状态尚未准备好时显示轻量加载说明。 -->
@@ -13,7 +13,7 @@
     </view>
 
     <!-- QuestionStage 根据 step 切换问题，并统一处理渐隐、渐显动画。 -->
-    <view v-else class="content">
+    <view v-else class="content" :class="{ 'welcome-content': step === 'welcome' }">
       <QuestionStage ref="questionStage" :title="questionTitle" :subtitle="questionSubtitle">
         <!-- 网络或后端校验错误保留在当前问题内，避免丢失已填写草稿。 -->
         <view v-if="errorMessage" class="error-box">
@@ -21,8 +21,13 @@
           <text class="error-action" @tap="retry">重试</text>
         </view>
 
+        <!-- 欢迎页只负责建立初次见面的语气，不收集或保存用户资料。 -->
+        <view v-if="step === 'welcome'" class="welcome-copy">
+          <text>很高兴，接下来能陪你们一起迎接新成员。</text>
+        </view>
+
         <!-- 身份决定后续文案以及后端 gender 字段。 -->
-        <view v-if="step === 'role'" class="choices">
+        <view v-else-if="step === 'role'" class="choices">
           <ChoiceButton label="宝妈" hint="我是正在经历孕期的妈妈" :selected="draft.role === 'MOTHER'" @tap="chooseRole('MOTHER')" />
           <ChoiceButton label="宝爸" hint="我是一起准备迎接宝宝的爸爸" :selected="draft.role === 'FATHER'" @tap="chooseRole('FATHER')" />
         </view>
@@ -101,8 +106,8 @@ export default {
       busy: false,
       // 当前需要展示给用户的网络或业务错误。
       errorMessage: '',
-      // 当前问题键，同时驱动页面内容、进度和换题动画。
-      step: 'role',
+      // 当前页面键；welcome 是不计入 5 个资料问题的初次见面页。
+      step: 'welcome',
       // 家庭码预览接口返回的安全家庭摘要。
       familyPreview: {},
       // 首次资料补充草稿；每次关键修改都会同步到本地存储。
@@ -133,12 +138,13 @@ export default {
     /** @returns {string} 当前问题对应的“序号 / 总数”文案。 */
     stepLabel() {
       const position = { role: 1, nickname: 2, 'family-action': 3, 'due-date': 4, 'baby-nickname': 5, 'join-method': 4, 'join-code': 5, 'join-preview': 5 }[this.step]
-      return `${position || 1} / 5`
+      return position ? `${position} / 5` : ''
     },
     /** @returns {string} 根据身份和步骤生成的问题标题。 */
     questionTitle() {
       const roleName = this.draft.role === 'FATHER' ? '宝爸' : '宝妈'
       return {
+        welcome: '你好，初次见面',
         role: '您是宝爸还是宝妈？',
         nickname: `${roleName}您好，怎么称呼您？`,
         'family-action': '您希望新建一个家庭，还是加入已有家庭？',
@@ -152,6 +158,7 @@ export default {
     /** @returns {string} 当前问题的辅助解释。 */
     questionSubtitle() {
       return {
+        welcome: '在一起迎接宝宝之前，我们先认识一下。',
         role: '选一个最符合你现在身份的选项。',
         nickname: '一个简单的称呼，就能让协作更有温度。',
         'family-action': '新建家庭需要填写预产期，加入家庭则不需要重复填写。',
@@ -164,12 +171,12 @@ export default {
     },
     /** @returns {string} 当前主按钮文案。 */
     primaryLabel() {
-      return { role: '继续', nickname: '继续', 'family-action': this.draft.familyAction === 'JOIN' ? '下一步' : '继续', 'due-date': '继续', 'baby-nickname': '完成设置', 'join-code': '查找家庭', 'join-preview': '确认加入' }[this.step] || '继续'
+      return { welcome: '认识一下', role: '继续', nickname: '继续', 'family-action': this.draft.familyAction === 'JOIN' ? '下一步' : '继续', 'due-date': '继续', 'baby-nickname': '完成设置', 'join-code': '查找家庭', 'join-preview': '确认加入' }[this.step] || '继续'
     },
     /** @returns {boolean} 当前步骤是否需要显示主按钮。 */
-    showPrimary() { return ['role', 'nickname', 'family-action', 'due-date', 'baby-nickname', 'join-code', 'join-preview'].includes(this.step) },
+    showPrimary() { return ['welcome', 'role', 'nickname', 'family-action', 'due-date', 'baby-nickname', 'join-code', 'join-preview'].includes(this.step) },
     /** @returns {boolean} 当前是否允许返回上一题。 */
-    canGoBack() { return this.step !== 'role' && !this.busy }
+    canGoBack() { return !['welcome', 'role'].includes(this.step) && !this.busy }
   },
   /** 页面加载后立即准备匿名会话并判断是否需要继续引导。 */
   onLoad() { this.bootstrap() },
@@ -183,7 +190,10 @@ export default {
     async bootstrap() {
       this.loading = true
       this.errorMessage = ''
-      this.draft = { ...this.draft, ...getOnboardingDraft() }
+      const savedDraft = getOnboardingDraft()
+      this.draft = { ...this.draft, ...savedDraft }
+      // 已经填写过任意资料的用户直接回到问题流程，不重复展示“初次见面”。
+      if (['role', 'nickname', 'familyAction', 'expectedDate', 'babyNickname', 'familyCode'].some(field => Boolean(savedDraft[field]))) this.step = 'role'
       try {
         const user = await ensureSessionAndUser()
         if (user && (user.onboardingCompleted || user.onboardingStatus === 'COMPLETED' || user.profileComplete === true || (user.onboarding && user.onboarding.status === 'COMPLETED'))) {
@@ -240,6 +250,7 @@ export default {
      * @returns {void|Promise<void>}
      */
     handlePrimary() {
+      if (this.step === 'welcome') return this.nextStep('role')
       if (this.step === 'role') return this.draft.role ? this.nextStep('nickname') : uni.showToast({ title: '请选择宝爸或宝妈', icon: 'none' })
       if (this.step === 'nickname') return this.nextFromNickname()
       if (this.step === 'family-action') return this.draft.familyAction ? this.nextStep(this.draft.familyAction === 'CREATE' ? 'due-date' : 'join-method') : uni.showToast({ title: '请选择家庭方式', icon: 'none' })
@@ -300,14 +311,16 @@ export default {
 <style scoped>
 /* 首次引导沿用主看板的暖米白、黑色与荧光黄，保持轻快统一的视觉语气。 */
 page { background: #f8f7ef; }
-.onboarding-page { width: 100%; min-height: 100vh; box-sizing: border-box; overflow-x: hidden; padding: calc(28px + env(safe-area-inset-top)) 24px calc(18px + env(safe-area-inset-bottom)); background: radial-gradient(circle at 88% 8%, rgba(234, 255, 63, .24), transparent 31%), #f8f7ef; color: #111212; display: flex; flex-direction: column; }
+.onboarding-page { position: relative; width: 100%; height: 100vh; min-height: 100vh; box-sizing: border-box; overflow-x: hidden; overflow-y: auto; padding: calc(28px + env(safe-area-inset-top)) 24px calc(18px + env(safe-area-inset-bottom)); background: radial-gradient(circle at 88% 8%, rgba(234, 255, 63, .24), transparent 31%), #f8f7ef; color: #111212; display: flex; flex-direction: column; }
 .topbar, .content, .state-panel { width: 100%; max-width: 480px; margin-left: auto; margin-right: auto; box-sizing: border-box; }
 .topbar { display: flex; justify-content: flex-end; align-items: flex-start; flex: none; }
 .step-count { color: #777b74; font-size: 12px; padding-top: 5px; }
 .content { flex: 1; min-width: 0; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 28px 0 20px; }
+.content.welcome-content { position: absolute; top: 50%; bottom: auto; left: 50%; width: calc(100% - 48px); transform: translate(-50%, -50%); padding-top: 0; padding-bottom: 0; }
 .state-panel { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 0 10px; }
 .state-title { color: #111212; font-size: 24px; font-weight: 800; }
 .state-copy { color: #777b74; font-size: 14px; line-height: 1.7; margin-top: 12px; }
+.welcome-copy { color: #777b74; font-size: 13px; line-height: 1.7; }
 .choices, .form-block { width: 100%; }
 .chalk-input { width: 100%; height: 55px; box-sizing: border-box; border-bottom: 1px solid #aeb1aa; color: #111212; font-size: 20px; padding: 0 2px; }
 .chalk-input::placeholder { color: #a3a69f; }
@@ -333,6 +346,7 @@ button::after { border: none; }
 /* 窄屏手机减少水平留白，保证三个操作按钮和长标题仍有足够空间。 */
 @media screen and (max-width: 350px) {
   .onboarding-page { padding-left: 18px; padding-right: 18px; }
+  .content.welcome-content { width: calc(100% - 36px); }
   .content { padding-top: 24px; padding-bottom: 18px; }
   .actions { gap: 6px; margin-top: 23px; }
   .primary-button, .ghost-button { height: 45px; line-height: 45px; padding: 0 5px; font-size: 14px; }
